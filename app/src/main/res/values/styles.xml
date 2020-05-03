@@ -19,7 +19,11 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="AppTheme.OverFlow" parent="@android:style/Widget.ActionButton.Overflow">
-        <item name="android:tint">@color/secondaryTextColor</item>
+        <item name="android:tint">@color/primaryColor</item>
         <item name="android:src">@drawable/ic_overflow_vert_24px</item>
+    </style>
+
+    <style name="AppTheme.Tab" parent="TextAppearance.AppCompat.Body2">
+        <item name="android:textSize">20sp</item>
     </style>
 </resources>

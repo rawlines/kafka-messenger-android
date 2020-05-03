@@ -1,10 +1,8 @@
 package com.github;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.View;
 
 import com.github.activities.NewContactActivity;
 import com.github.db.AppDatabase;
@@ -12,12 +10,9 @@ import com.github.ui.adapters.MainTabsPagerAdapter;
 import com.github.db.DatabaseManager;
 import com.github.utils.PublicWriter;
 import com.github.utils.threads.MainListenerThread;
-import com.google.android.material.appbar.AppBarLayout;
-import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.room.Room;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
             TabLayout tabs = findViewById(R.id.tabs);
             tabs.setupWithViewPager(viewPager);
 
-            Toolbar toolbar = findViewById(R.id.toolbar);
             setSupportActionBar(findViewById(R.id.toolbar));
 
             tabs.addOnTabSelectedListener(new TabLayout.BaseOnTabSelectedListener() {

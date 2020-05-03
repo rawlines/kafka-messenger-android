@@ -113,16 +113,24 @@ public class RecyclerViewFragment extends Fragment {
     }
 
     private void onContactClick(View v) {
-        TextView t = v.findViewById(R.id.contact_username);
-        MainActivity.currentConversation = t.getText().toString();
+        TextView username = v.findViewById(R.id.contact_username);
+        TextView alias = v.findViewById(R.id.contact_alias);
+        MainActivity.currentConversation = username.getText().toString();
+
         Intent intent = new Intent(getContext(), ChatActivity.class);
+        intent.putExtra("alias", alias.getText().toString());
+
         startActivity(intent);
     }
 
     private void onChatClick(View v) {
-        TextView t = v.findViewById(R.id.chat_username);
-        MainActivity.currentConversation = t.getText().toString();
+        TextView username = v.findViewById(R.id.chat_username);
+        TextView alias = v.findViewById(R.id.chat_alias);
+        MainActivity.currentConversation = username.getText().toString();
+
         Intent intent = new Intent(getContext(), ChatActivity.class);
+        intent.putExtra("alias", alias.getText().toString());
+
         startActivity(intent);
     }
 }

@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -61,8 +62,9 @@ public class ChatActivity extends AppCompatActivity {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_conversation);
 
+            setSupportActionBar(findViewById(R.id.conversation_toolbar));
             this.conversation = MainActivity.currentConversation;
-            getSupportActionBar().setTitle(conversation);
+            getSupportActionBar().setTitle(getIntent().getStringExtra("alias"));
 
             initChatGUI();
             new Thread(backgroundDBMessageFetcher).start();

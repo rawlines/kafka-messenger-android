@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/primaryColor">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/add_contact_floating_button"
@@ -44,25 +45,27 @@
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
+                    android:layout_height="50dp"
                     android:background="@color/secondaryLightColor"
                     android:minHeight="?attr/actionBarSize"
                     android:theme="?attr/actionBarTheme"
                     app:layout_collapseMode="none"
-                    app:subtitleTextColor="@color/secondaryTextColor"
+                    app:subtitleTextColor="@color/primaryColor"
                     app:title="@string/app_name"
-                    app:titleTextColor="@color/secondaryTextColor" />
+                    app:titleTextColor="@color/primaryColor" />
 
                 <com.google.android.material.tabs.TabLayout
                     android:id="@+id/tabs"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:layout_gravity="bottom"
-                    android:layout_marginTop="?attr/actionBarSize"
+                    android:layout_marginTop="50dp"
                     android:background="@color/secondaryLightColor"
                     app:layout_collapseMode="pin"
                     app:tabIndicatorColor="@color/secondaryDarkColor"
-                    app:tabTextColor="@color/secondaryTextColor" />
+                    app:tabIndicatorHeight="3.5dp"
+                    app:tabTextAppearance="@style/AppTheme.Tab"
+                    app:tabTextColor="@color/primaryColor" />
 
             </com.google.android.material.appbar.CollapsingToolbarLayout>
 
@@ -83,7 +86,7 @@
                     android:id="@+id/view_pager"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@color/primaryDarkColor"
+                    android:background="@color/primaryColor"
                     android:overScrollMode="always">
 
                 </androidx.viewpager.widget.ViewPager>

@@ -17,7 +17,7 @@ public class Contact implements Serializable {
     public String alias;
 
     @ColumnInfo(name = "publicKey")
-    public String publicKey;
+    public byte[] publicKey;
 
     @ColumnInfo(name = "lastMessageTime")
     public long lastMessageTime = 0;
@@ -25,7 +25,7 @@ public class Contact implements Serializable {
     @ColumnInfo(name = "lastMessageType")
     public short lastMessageType = -1;
 
-    public Contact(String username, String alias, String publicKey) {
+    public Contact(String username, String alias, byte[] publicKey) {
         this.username = username;
         this.alias = alias;
         this.publicKey = publicKey;

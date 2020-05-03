@@ -51,27 +51,22 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        //ChatData currentInfo = contacts.get(position);
+        ChatData currentInfo = contacts.get(position);
 
         TextView last = holder.itemView.findViewById(R.id.last_message);
         TextView alias = holder.itemView.findViewById(R.id.chat_alias);
         TextView userName = holder.itemView.findViewById(R.id.chat_username);
         CardView card = holder.itemView.findViewById(R.id.chat_cardview);
 
-        userName.setText("sample");
-        alias.setText("sample");
-        last.setText("sample");
-
-        /*userName.setText(currentInfo.contact.username);
+        userName.setText(currentInfo.contact.username);
         alias.setText(currentInfo.contact.alias);
         last.setText(currentInfo.lastMessage);
-        card.setOnClickListener(this.callback::accept);*/
+        card.setOnClickListener(this.callback::accept);
     }
 
     @Override
     public int getItemCount() {
-        return 20;
-        //return contacts.size();
+        return contacts.size();
     }
 
     public void setAll(List<ChatData> contacts) {

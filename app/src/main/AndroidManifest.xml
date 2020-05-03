@@ -20,8 +20,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.ChatActivity" />
-        <activity android:name=".activities.NewContactActivity" />
+        <activity android:name=".activities.ChatActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".activities.NewContactActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>
