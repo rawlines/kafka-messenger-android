@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primaryDarkColor">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/conversation_recyclerview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/message_input"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/message_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="5dp"
+        android:autofillHints="AUTOFILL_TYPE_NONE"
+        android:background="@drawable/message_input_background"
+        android:backgroundTint="@color/primaryLightColor"
+        android:ems="10"
+        android:gravity="start|top"
+        android:hint="@string/chat_placeholder"
+        android:inputType="textMultiLine"
+        android:maxHeight="170dp"
+        android:minHeight="20dp"
+        android:paddingStart="15dp"
+        android:paddingTop="9dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="11dp"
+        android:textColor="@color/primaryTextColor"
+        android:textColorHighlight="@color/secondaryDarkColor"
+        android:textColorHint="#C1C1C1"
+        android:textColorLink="@color/secondaryColor"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/send_message_button"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/send_message_button"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="5dp"
+        android:clickable="true"
+        android:tint="@color/secondaryTextColor"
+        app:backgroundTint="@color/secondaryLightColor"
+        app:fabCustomSize="46dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:maxImageSize="24dp"
+        app:srcCompat="@drawable/ic_send_black_24dp" />
+</androidx.constraintlayout.widget.ConstraintLayout>
