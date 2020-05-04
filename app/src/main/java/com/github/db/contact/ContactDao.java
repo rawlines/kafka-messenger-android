@@ -17,6 +17,9 @@ public interface ContactDao {
     @Query("SELECT * FROM Contact WHERE lastMessageTime = 0 AND lastMessageType = -1")
     List<Contact> getInactive();
 
+    @Query("UPDATE Contact SET unread = :value WHERE username LIKE :username")
+    void setUnread(String username, boolean value);
+
     @Query("UPDATE Contact SET lastMessageTime = :time, lastMessageType = :type WHERE username LIKE :username")
     void setLastMessage(String username, long time, short type);
 

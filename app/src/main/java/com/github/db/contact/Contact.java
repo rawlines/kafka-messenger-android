@@ -19,6 +19,9 @@ public class Contact implements Serializable {
     @ColumnInfo(name = "publicKey")
     public byte[] publicKey;
 
+    @ColumnInfo(name = "unread")
+    public boolean unread = false;
+
     @ColumnInfo(name = "lastMessageTime")
     public long lastMessageTime = 0;
 

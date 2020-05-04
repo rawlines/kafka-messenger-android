@@ -5,7 +5,7 @@
     <string name="chat_placeholder">Mensaje</string>
 
     <string name="mate_key_placeholder">Inserta aquí la clave de tu amigo</string>
-    <string name="mate_alias_placeholder">Alias</string>
+    <string name="mate_alias_placeholder">Alias (opcional)</string>
     <string name="mate_key_alternative_title">O tambén, puedes escanear su código QR</string>
     <string name="mate_key_button">Escanear QR</string>
     <string name="toast_wrong_key">No se ha podido añadir este usuario, comprueba los datos y vuelve a intentarlo</string>

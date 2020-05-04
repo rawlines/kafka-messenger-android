@@ -30,9 +30,7 @@ public final class DatabaseManager {
 
                   Object o = b.getSerializable("arg");
                   ArrayList<DatabaseManager.Callback> q = (ArrayList<DatabaseManager.Callback>) b.getSerializable("queue");
-
-                  for (DatabaseManager.Callback c : q)
-                        c.call(o);
+                  q.forEach((callback) -> callback.call(o));
             }
       };
 
@@ -150,5 +148,9 @@ public final class DatabaseManager {
 
       public synchronized List<Contact> getChats() {
             return this.contactDao.getActive();
+      }
+
+      public synchronized void setContactUnread(String username, boolean value) {
+            this.contactDao.setUnread(username, value);
       }
 }

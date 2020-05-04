@@ -1,6 +1,5 @@
 package com.github.ui.adapters;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.github.MainActivity;
 import com.github.R;
 import com.github.db.contact.Contact;
 import com.github.db.conversation.ConversationMessage;
@@ -50,9 +50,8 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.chatview_recyclerview, parent, false);
-        ViewHolder vh = new ViewHolder(v);
 
-        return vh;
+        return new ViewHolder(v);
     }
 
     @Override
@@ -69,13 +68,14 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
         alias.setText(currentInfo.contact.alias);
         last.setText(currentInfo.lastMessage);
 
-        if (currentInfo.neew)
+        //check unread
+        if (currentInfo.contact.unread || currentInfo.neew)
             notification.setVisibility(View.VISIBLE);
         else
             notification.setVisibility(View.INVISIBLE);
 
         card.setOnClickListener((view) -> {
-            currentInfo.neew = false;
+            new Thread(() -> MainActivity.databaseManager.setContactUnread(currentInfo.contact.username, false)).start();
             this.callback.accept(view);
         });
     }
@@ -99,7 +99,12 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
             ChatData currentData = iter.next();
             if (msg.conversation.equals(currentData.contact.username)) {
                 currentData.lastMessage = Cryptography.parseCrypted(msg.content).plain;
+
+                //set unread,
+                //also, variable for making immediatly changes is used, as a query to the database may take longer than the ui refreshes
+                new Thread(() -> MainActivity.databaseManager.setContactUnread(msg.conversation, true)).start();
                 currentData.neew = true;
+
                 found = true;
             } else {
                 indx++;
