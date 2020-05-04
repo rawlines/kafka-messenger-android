@@ -72,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public boolean onCreateOptionsMenu(Menu menu) {
             getMenuInflater().inflate(R.menu.main_menu, menu);
-
             return true;
       }
 
@@ -82,11 +81,6 @@ public class MainActivity extends AppCompatActivity {
       private void initDatabase() {
             databaseManager = DatabaseManager.init(Room.databaseBuilder(getApplicationContext(),
                   AppDatabase.class, "database-name").build());
-
-            if (databaseManager != null)
-                  databaseManager.addConversationCallback(null, o -> {
-                        //Handle listener for all conversations
-                  });
       }
 
       /**

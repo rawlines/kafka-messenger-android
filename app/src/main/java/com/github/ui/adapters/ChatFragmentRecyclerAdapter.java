@@ -1,8 +1,10 @@
 package com.github.ui.adapters;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -11,8 +13,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.R;
 import com.github.db.contact.Contact;
+import com.github.db.conversation.ConversationMessage;
+import com.github.utils.Cryptography;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -23,6 +28,7 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
     public static class ChatData {
         Contact contact;
         String lastMessage;
+        boolean neew = false;
 
         public ChatData(Contact contact, String lastMessage) {
             this.contact = contact;
@@ -57,11 +63,21 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
         TextView alias = holder.itemView.findViewById(R.id.chat_alias);
         TextView userName = holder.itemView.findViewById(R.id.chat_username);
         CardView card = holder.itemView.findViewById(R.id.chat_cardview);
+        ImageView notification = holder.itemView.findViewById(R.id.notification_dot);
 
         userName.setText(currentInfo.contact.username);
         alias.setText(currentInfo.contact.alias);
         last.setText(currentInfo.lastMessage);
-        card.setOnClickListener(this.callback::accept);
+
+        if (currentInfo.neew)
+            notification.setVisibility(View.VISIBLE);
+        else
+            notification.setVisibility(View.INVISIBLE);
+
+        card.setOnClickListener((view) -> {
+            currentInfo.neew = false;
+            this.callback.accept(view);
+        });
     }
 
     @Override
@@ -73,5 +89,22 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
         this.contacts.clear();
         this.contacts.addAll(contacts);
         this.notifyDataSetChanged();
+    }
+
+    public void updateChat(ConversationMessage msg) {
+        int indx = 0;
+        boolean found = false;
+        Iterator<ChatData> iter = contacts.iterator();
+        while (iter.hasNext() && !found) {
+            ChatData currentData = iter.next();
+            if (msg.conversation.equals(currentData.contact.username)) {
+                currentData.lastMessage = Cryptography.parseCrypted(msg.content).plain;
+                currentData.neew = true;
+                found = true;
+            } else {
+                indx++;
+            }
+        }
+        this.notifyItemChanged(indx);
     }
 }

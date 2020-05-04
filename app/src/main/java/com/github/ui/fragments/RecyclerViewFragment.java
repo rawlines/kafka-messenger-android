@@ -104,6 +104,8 @@ public class RecyclerViewFragment extends Fragment {
         mChatAdapter = new ChatFragmentRecyclerAdapter(this::onChatClick);
         recyclerView.setAdapter(mChatAdapter);
         new Thread(chatsFetchRunnable).start();
+
+        MainActivity.databaseManager.addConversationCallback(null, mChatAdapter::updateChat);
     }
 
     private void contactsFragment() {
