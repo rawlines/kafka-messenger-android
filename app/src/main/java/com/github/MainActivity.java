@@ -3,7 +3,9 @@ package com.github;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 
+import com.github.activities.CredentialsActivity;
 import com.github.activities.NewContactActivity;
 import com.github.db.AppDatabase;
 import com.github.ui.adapters.MainTabsPagerAdapter;
@@ -13,16 +15,17 @@ import com.github.utils.threads.MainListenerThread;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.Room;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import java.security.KeyStore;
 
 public class MainActivity extends AppCompatActivity {
-      public static String username = "client1";
-      public static String password = "1234567890qw";
+      public static String username = null;
+      public static String password = null;
 
       public static String currentConversation = null;
 
@@ -67,14 +70,41 @@ public class MainActivity extends AppCompatActivity {
 
             initDatabase();
             initMainListenerThread();
+
+            Intent intent = new Intent(this, CredentialsActivity.class);
+            startActivityForResult(intent, 0);
+      }
+
+      @Override
+      protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+            if (requestCode != 0 || data == null)
+                  return;
+
+            if (resultCode != RESULT_OK)
+                  return;//handle error
+
+            username = data.getStringExtra("username");
+            password = data.getStringExtra("password");
       }
 
       @Override
       public boolean onCreateOptionsMenu(Menu menu) {
             getMenuInflater().inflate(R.menu.main_menu, menu);
-            return true;
+            return super.onCreateOptionsMenu(menu);
       }
 
+      @Override
+      public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+            switch (item.getItemId()) {
+                  case R.id.user_pass_option:
+                        startActivity(new Intent(this, CredentialsActivity.class));
+                        break;
+                  case R.id.share_code_option:
+                        break;
+            }
+
+            return super.onOptionsItemSelected(item);
+      }
       /**
        * Initialize RoomDatabase shared var for all threads.
        */

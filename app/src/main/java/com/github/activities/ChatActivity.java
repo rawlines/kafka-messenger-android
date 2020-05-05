@@ -1,10 +1,16 @@
 package com.github.activities;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,6 +24,7 @@ import com.github.utils.Cryptography;
 import com.github.utils.NetworkQueues;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.github.db.conversation.ConversationMessage.SENT;
@@ -29,17 +36,35 @@ public class ChatActivity extends AppCompatActivity {
       private ConversationRecyclerViewAdapter mAdapter;
       private LinearLayoutManager layoutManager;
 
-      private Runnable backgroundDBMessageFetcher = () -> {
+      private final Handler messagePutter = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                  Object obj = msg.getData().getSerializable("messages");
+                  ArrayList<ConversationMessage> messages = null;
+
+                  messages = (ArrayList<ConversationMessage>) obj;
+
+                  mAdapter.addMessages(messages);
+            }
+      };
+
+      private final Runnable backgroundDBMessageFetcher = () -> {
             List<ConversationMessage> messages =
                   MainActivity.databaseManager.getConversationMessages(conversation);
 
-            mAdapter.addMessages(messages);
+            ArrayList<ConversationMessage> data = new ArrayList<>(messages);
+
+            Bundle b = new Bundle();
+            b.putSerializable("messages", data);
+            Message msg = new Message();
+            msg.setData(b);
+            messagePutter.sendMessage(msg);
       };
 
       private class MessageSenderThread implements Runnable {
             private ConversationMessage msg;
 
-            public MessageSenderThread(ConversationMessage msg) {
+            MessageSenderThread(ConversationMessage msg) {
                   this.msg = msg;
             }
 
@@ -60,7 +85,9 @@ public class ChatActivity extends AppCompatActivity {
 
             setSupportActionBar(findViewById(R.id.conversation_toolbar));
             this.conversation = MainActivity.currentConversation;
-            getSupportActionBar().setTitle(getIntent().getStringExtra("alias"));
+            ActionBar ab = getSupportActionBar();
+            if (ab != null)
+                  ab.setTitle(getIntent().getStringExtra("alias"));
 
             initChatGUI();
             new Thread(backgroundDBMessageFetcher).start();

@@ -16,6 +16,7 @@ import com.github.db.contact.Contact;
 import com.github.db.conversation.ConversationMessage;
 import com.github.utils.Cryptography;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -25,7 +26,7 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
     private ArrayList<ChatData> contacts = new ArrayList<>();
     private Consumer<View> callback;
 
-    public static class ChatData {
+    public static class ChatData implements Serializable {
         Contact contact;
         String lastMessage;
         boolean neew = false;
@@ -101,9 +102,9 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
                 currentData.lastMessage = Cryptography.parseCrypted(msg.content).plain;
 
                 //set unread,
-                //also, variable for making immediatly changes is used, as a query to the database may take longer than the ui refreshes
+                //also, variable for making immediately changes is used, as a query to the database may take longer than the ui refreshes
                 new Thread(() -> MainActivity.databaseManager.setContactUnread(msg.conversation, true)).start();
-                currentData.neew = true;
+                currentData.neew = true; //immediate variable
 
                 found = true;
             } else {

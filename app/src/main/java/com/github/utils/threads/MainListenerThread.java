@@ -71,8 +71,11 @@ public class MainListenerThread extends Thread {
             while (true) {
                   try {
                         prepareEnvironment();
-                        sendAuth();
-                        prepareSubThreads();
+
+                        if (MainActivity.username != null && MainActivity.password != null) {
+                              sendAuth();
+                              prepareSubThreads();
+                        }
 
 
                         while (!Thread.interrupted()) {

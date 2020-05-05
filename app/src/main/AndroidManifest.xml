@@ -24,6 +24,8 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".activities.NewContactActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".activities.CredentialsActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

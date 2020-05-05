@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="option_share">Compartir mi código</string>
+    <string name="option_userandpass">Usuario y contraseña</string>
 </resources>

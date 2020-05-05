@@ -11,4 +11,10 @@
     <string name="toast_wrong_key">No se ha podido añadir este usuario, comprueba los datos y vuelve a intentarlo</string>
     <string name="toast_okey_key">Usuario añadido correctamente</string>
     <string name="toolbar_new_contact_title">Nuevo contacto</string>
+
+    <string name="username_hint">Nombre de usuario</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="credentials_toolbar_title">Autenticación</string>
+    <string name="im_new_label">Soy nuevo</string>
+    <string name="continue_login">Continuar</string>
 </resources>

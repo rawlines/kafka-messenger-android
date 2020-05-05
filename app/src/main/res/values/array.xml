@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="server_list">
+        <item>kafkaproject.ddns.net:9091</item>
+        <item>lmn806.ddns.net:9091</item>
+    </string-array>
+</resources>

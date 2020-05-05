@@ -1,8 +1,5 @@
 package com.github.ui.adapters;
 
-import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,12 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.github.MainActivity;
 import com.github.R;
-import com.github.activities.ChatActivity;
 import com.github.db.contact.Contact;
-import com.github.ui.fragments.RecyclerViewFragment;
-import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
 import java.util.List;

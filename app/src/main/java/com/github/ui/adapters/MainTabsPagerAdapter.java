@@ -8,7 +8,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 
 import com.github.R;
-import com.github.ui.fragments.RecyclerViewFragment;
+import com.github.fragments.RecyclerViewFragment;
 
 public class MainTabsPagerAdapter extends FragmentStatePagerAdapter {
     private static final int[] TAB_TITLES = {R.string.tab_chats, R.string.tab_contacts};
