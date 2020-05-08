@@ -1,13 +1,21 @@
 package com.github.utils.threads;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.github.R;
 import com.github.activities.MainActivity;
 import com.github.db.conversation.ConversationMessage;
 import com.github.utils.PublicWriter;
 import com.github.utils.SSLFactory;
+import com.google.android.material.snackbar.Snackbar;
 import com.rest.net.AcknPacket;
 import com.rest.net.ConsumePacket;
+import com.rest.net.DenyPacket;
 import com.rest.net.Packet;
 import com.rest.net.Packet.PacketType;
 import com.rest.net.PacketReader;
@@ -27,6 +35,10 @@ public class MainListenerThread extends Thread {
 
       private Thread keepAliveThread;
       private Thread unSentMessagesThread;
+
+      private boolean logged = false;
+
+      private MainActivity mainActivity;
 
       private Runnable keepAliveRunnable = () -> {
             try {
@@ -52,6 +64,43 @@ public class MainListenerThread extends Thread {
             } catch (Exception ignored) {}
       };
 
+      private Snackbar disconnectSnackbar = null;
+
+      //object used as locker for main thread
+      private static final Object LOCK = new Object();
+      private static final int AUTH_ERROR = 0;
+      private static final int CONNECTION_ERROR = 1;
+      private final Handler offlineHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                  switch (msg.arg1) {
+                        case AUTH_ERROR:
+                              Snackbar.make(mainActivity.getWindow().getDecorView().getRootView(),
+                                    "El servidor te ha rechazado, Prueba con otras credenciales.", Snackbar.LENGTH_INDEFINITE)
+                                    .setAction("ADELANTE", (v) -> {
+                                          //prompt new credentials
+                                          synchronized (LOCK) {
+                                                LOCK.notify();
+                                          }
+                                    })
+                                    .setActionTextColor(mainActivity.getColor(R.color.secondaryLightColor))
+                                    .show();
+                              break;
+                        case CONNECTION_ERROR:
+                              disconnectSnackbar = Snackbar.make(mainActivity.getWindow().getDecorView().getRootView(),
+                                    "Te has desconectado, reintentando en 5 secs.", Snackbar.LENGTH_INDEFINITE)
+                                    .setAction("CAMBIAR SERVIDOR", (v) -> {
+                                          mainActivity.changeServerRoutine();
+                                    })
+                                    .setActionTextColor(mainActivity.getColor(R.color.secondaryLightColor));
+                              disconnectSnackbar.show();
+                              break;
+                  }
+            }
+      };
+
+      public MainListenerThread(MainActivity mainActivity) { this.mainActivity = mainActivity; }
+
       @Override
       public void run() {
             while (true) {
@@ -63,6 +112,10 @@ public class MainListenerThread extends Thread {
                         sendAuth();
                         prepareSubThreads();
 
+                        if (disconnectSnackbar != null) {
+                              disconnectSnackbar.dismiss();
+                              disconnectSnackbar = null;
+                        }
 
                         while (!Thread.interrupted()) {
                               Packet packet = pReader.readPacket();
@@ -73,6 +126,9 @@ public class MainListenerThread extends Thread {
                                           break;
                                     case ACKN:
                                           acknPacket((AcknPacket) packet);
+                                          break;
+                                    case DENY:
+                                          denyPacket((DenyPacket) packet);
                                           break;
                                     default:
                                           //default
@@ -89,9 +145,19 @@ public class MainListenerThread extends Thread {
                   if (unSentMessagesThread != null)
                         unSentMessagesThread.interrupt();
 
-                  Log.d("CONS","Disconnected, retrying in 5 secs...");
+                  //Will detect if has successfully logged in and with that info display one
+                  //message or another
                   try {
-                        Thread.sleep(RETRY_TIMEOUT);
+                        synchronized (LOCK) {
+                              Message m = new Message();
+                              m.arg1 = logged ? CONNECTION_ERROR : AUTH_ERROR;
+                              offlineHandler.sendMessage(m);
+
+                              if (logged)
+                                    Thread.sleep(RETRY_TIMEOUT);
+                              else
+                                    LOCK.wait();
+                        }
                   } catch (Exception ignored) {}
             }
       }
@@ -111,6 +177,8 @@ public class MainListenerThread extends Thread {
        * @throws Exception - exception
        */
       private void prepareEnvironment() throws Exception {
+            logged = true;
+
             String[] splitted = MainActivity.globalCredentials.ipAddress.split(":");
             SSLSocketFactory factory = SSLFactory.getSSLFactory(MainActivity.trustStore, MainActivity.keyStore);
             SSLSocket socket = (SSLSocket) factory.createSocket(splitted[0], Integer.parseInt(splitted[1]));
@@ -125,7 +193,8 @@ public class MainListenerThread extends Thread {
        * Method for sending an {@link com.rest.net.AuthPacket} to the server
        */
       private void sendAuth() {
-            MainActivity.publicWriter.sendAUTH(MainActivity.globalCredentials.username, MainActivity.globalCredentials.password);
+            //MainActivity.publicWriter.sendAUTH(MainActivity.globalCredentials.username, MainActivity.globalCredentials.password);
+            MainActivity.publicWriter.sendAUTH("penes", MainActivity.globalCredentials.password);
             Log.d("CONS", "Auth packet sent");
       }
 
@@ -159,6 +228,19 @@ public class MainListenerThread extends Thread {
                   ConversationMessage msg = PublicWriter.producedWithoutAck.poll();
                   if (msg != null)
                         MainActivity.databaseManager.setMessageAsSuccess(msg);
+            }
+      }
+
+      /**
+       * Handler when a {@link DenyPacket} is receibed
+       *
+       * @param p - the packet receibed
+       */
+      private void denyPacket(DenyPacket p) {
+            switch (p.getCommand()) {
+                  case AUTH:
+                        logged = false;
+                        break;
             }
       }
 }

@@ -8,8 +8,6 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.Toast;
 
 import com.github.R;
 import com.github.db.AppDatabase;
@@ -99,36 +97,14 @@ public class MainActivity extends AppCompatActivity {
 
       @Override
       public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-            if (item.getItemId() != R.id.change_server_option)
-                  return false;
-
-            String[] servers = getResources().getStringArray(R.array.server_list);
-            int selectedIndx = 0;
-            boolean done = false;
-            while (selectedIndx < servers.length && !done) {
-                  if (servers[selectedIndx].equals(globalCredentials.ipAddress))
-                        done = true;
-                  else
-                        selectedIndx++;
+            switch (item.getItemId()) {
+                  case R.id.change_server_option:
+                        changeServerRoutine();
+                        break;
+                  case R.id.share_code_option:
+                        shareCodeRoutine();
+                        break;
             }
-
-            final Handler handler = new Handler(Looper.getMainLooper()) {
-                  @Override
-                  public void handleMessage(@NonNull Message msg) {
-                        ProcessPhoenix.triggerRebirth(MainActivity.this);
-                  }
-            };
-
-            new AlertDialog.Builder(this)
-                  .setTitle(R.string.server_selector_title)
-                  .setSingleChoiceItems(servers, selectedIndx, (dialog, which) -> {
-                        globalCredentials.ipAddress = servers[which];
-                  }).setPositiveButton(R.string.server_selector_ok, (dialog, which) -> {
-                        new Thread(() -> {
-                              MainActivity.databaseManager.changeIpAddress(globalCredentials.ipAddress);
-                              handler.sendMessage(new Message());
-                        }).start();
-                  }).show();
 
             return super.onOptionsItemSelected(item);
       }
@@ -190,6 +166,46 @@ public class MainActivity extends AppCompatActivity {
        * Initializes the main listener thread with SSL configurations.
        */
       private void initMainListenerThread() {
-            new MainListenerThread().start();
+            new MainListenerThread(this).start();
+      }
+
+      /**
+       * Routine for displaying the dialog with available servers and allowing the user to perform the selection
+       */
+      public void changeServerRoutine() {
+            String[] servers = getResources().getStringArray(R.array.server_list);
+            int selectedIndx = 0;
+            boolean done = false;
+            while (selectedIndx < servers.length && !done) {
+                  if (servers[selectedIndx].equals(globalCredentials.ipAddress))
+                        done = true;
+                  else
+                        selectedIndx++;
+            }
+
+            final Handler handler = new Handler(Looper.getMainLooper()) {
+                  @Override
+                  public void handleMessage(@NonNull Message msg) {
+                        ProcessPhoenix.triggerRebirth(MainActivity.this);
+                  }
+            };
+
+            new AlertDialog.Builder(this)
+                  .setTitle(R.string.server_selector_title)
+                  .setSingleChoiceItems(servers, selectedIndx, (dialog, which) ->
+                        globalCredentials.ipAddress = servers[which]
+                  ).setPositiveButton(R.string.server_selector_ok, (dialog, which) ->
+                  new Thread(() -> {
+                        MainActivity.databaseManager.changeIpAddress(globalCredentials.ipAddress);
+                        handler.sendMessage(new Message());
+                  }).start()
+            ).show();
+      }
+
+      /**
+       * Routine for displaying the dialog with
+       */
+      private void shareCodeRoutine() {
+
       }
 }
