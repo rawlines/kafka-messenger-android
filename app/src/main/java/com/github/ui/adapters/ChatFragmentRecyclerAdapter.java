@@ -1,5 +1,9 @@
 package com.github.ui.adapters;
 
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,13 +27,12 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragmentRecyclerAdapter.ViewHolder> {
-    private ArrayList<ChatData> contacts = new ArrayList<>();
+    private ArrayList<ChatData> conversations = new ArrayList<>();
     private Consumer<View> callback;
 
     public static class ChatData implements Serializable {
         Contact contact;
         String lastMessage;
-        boolean neew = false;
 
         public ChatData(Contact contact, String lastMessage) {
             this.contact = contact;
@@ -43,8 +46,8 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
         }
     }
 
-    public ChatFragmentRecyclerAdapter(Consumer<View> c) {
-        this.callback = c;
+    public ChatFragmentRecyclerAdapter(Consumer<View> clickCallback) {
+        this.callback = clickCallback;
     }
 
     @NonNull
@@ -57,7 +60,7 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ChatData currentInfo = contacts.get(position);
+        ChatData currentInfo = conversations.get(position);
 
         TextView last = holder.itemView.findViewById(R.id.last_message);
         TextView alias = holder.itemView.findViewById(R.id.chat_alias);
@@ -70,7 +73,7 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
         last.setText(currentInfo.lastMessage);
 
         //check unread
-        if (currentInfo.contact.unread || currentInfo.neew)
+        if (currentInfo.contact.unread)
             notification.setVisibility(View.VISIBLE);
         else
             notification.setVisibility(View.INVISIBLE);
@@ -83,34 +86,68 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
 
     @Override
     public int getItemCount() {
-        return contacts.size();
+        return conversations.size();
     }
 
     public void setAll(List<ChatData> contacts) {
-        this.contacts.clear();
-        this.contacts.addAll(contacts);
+        this.conversations.clear();
+        this.conversations.addAll(contacts);
         this.notifyDataSetChanged();
     }
 
-    public void updateChat(ConversationMessage msg) {
+    /**
+     * The conversation is unmarked as unread, and the passed message is sown. if conversation does not exists,
+     * then it is created
+     *
+     * @param msg - Message to update the conversation with
+     */
+    public void markConversationAsUnread(ConversationMessage msg) {
         int indx = 0;
         boolean found = false;
-        Iterator<ChatData> iter = contacts.iterator();
+
+        new Thread(() -> MainActivity.databaseManager.setContactUnread(msg.conversation, true)).start();
+
+        Iterator<ChatData> iter = conversations.iterator();
         while (iter.hasNext() && !found) {
             ChatData currentData = iter.next();
             if (msg.conversation.equals(currentData.contact.username)) {
                 currentData.lastMessage = Cryptography.parseCrypted(msg.content).plain;
 
                 //set unread,
-                //also, variable for making immediately changes is used, as a query to the database may take longer than the ui refreshes
-                new Thread(() -> MainActivity.databaseManager.setContactUnread(msg.conversation, true)).start();
-                currentData.neew = true; //immediate variable
-
+                currentData.contact.unread = true; //immediate variable
                 found = true;
             } else {
                 indx++;
             }
         }
-        this.notifyItemChanged(indx);
+        //If the conversation exists in the chat fragment, then is updated;
+        //if not exists, then is added as a new conversation
+        if (found) {
+            this.notifyItemChanged(indx);
+        } else {
+            //update the recycler view from main thread
+            final Handler handler = new Handler(Looper.getMainLooper()) {
+                @Override
+                public void handleMessage(@NonNull Message msg) {
+                    ChatData data = (ChatData) msg.getData().getSerializable("data");
+                    conversations.add(data);
+                    ChatFragmentRecyclerAdapter.this.notifyItemInserted(conversations.size() - 1);
+                }
+            };
+
+            //new conversation entry is created
+            new Thread(() -> {
+                Contact contact = MainActivity.databaseManager.getContact(msg.conversation);
+                String plain = Cryptography.parseCrypted(msg.content).plain;
+
+                ChatData chatData = new ChatData(contact, plain);
+
+                Bundle b = new Bundle();
+                b.putSerializable("data", chatData);
+                Message m = new Message();
+                m.setData(b);
+                handler.sendMessage(m);
+            }).start();
+        }
     }
 }

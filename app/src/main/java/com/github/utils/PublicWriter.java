@@ -2,8 +2,10 @@ package com.github.utils;
 
 import android.util.Log;
 
+import com.github.db.conversation.ConversationMessage;
 import com.rest.net.AcknPacket;
 import com.rest.net.AuthPacket;
+import com.rest.net.CreaPacket;
 import com.rest.net.KeepAlivePacket;
 import com.rest.net.Packet;
 import com.rest.net.Packet.PacketType;
@@ -11,18 +13,25 @@ import com.rest.net.PacketWriter;
 import com.rest.net.ProducePacket;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PublicWriter {
-    private PacketWriter pWriter;
-    private final Queue<Packet> queue = new LinkedList<>();
+    /**
+     * Thread safe, used to store pending ACKs for messages from server.
+     */
+    public static ConcurrentLinkedQueue<ConversationMessage> producedWithoutAck  = new ConcurrentLinkedQueue<>();
 
-    private Runnable senderRunnable = new Runnable() {
+    private PacketWriter pWriter;
+
+    private class SenderRunnable implements Runnable {
+        private Packet p;
+        public SenderRunnable(Packet p) {
+            this.p = p;
+        }
         @Override
         public void run() {
-            Packet p = queue.poll();
             try {
                 if (p != null && pWriter != null)
                     pWriter.sendPacket(p);
@@ -30,7 +39,7 @@ public class PublicWriter {
                 //not sent
             }
         }
-    };
+    }
 
     public PublicWriter(PacketWriter pWriter) {
         this.pWriter = pWriter;
@@ -52,12 +61,17 @@ public class PublicWriter {
     }
 
     public void sendPROD(String topic, byte[] content) {
+        Log.d("PROD", "Producing: " + topic );
         ProducePacket prod = new ProducePacket(topic, content);
         process(prod);
     }
 
+    public void sendCREA(String user, String password) {
+        CreaPacket crea = new CreaPacket(user, password);
+        process(crea);
+    }
+
     private void process(Packet packet) {
-        queue.add(packet);
-        new Thread(senderRunnable).start();
+        new Thread(new SenderRunnable(packet)).start();
     }
 }

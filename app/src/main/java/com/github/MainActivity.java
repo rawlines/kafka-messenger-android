@@ -2,12 +2,17 @@ package com.github;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.github.activities.CredentialsActivity;
 import com.github.activities.NewContactActivity;
 import com.github.db.AppDatabase;
+import com.github.db.credentials.Credential;
 import com.github.ui.adapters.MainTabsPagerAdapter;
 import com.github.db.DatabaseManager;
 import com.github.utils.PublicWriter;
@@ -24,19 +29,78 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.security.KeyStore;
 
 public class MainActivity extends AppCompatActivity {
-      public static String username = null;
-      public static String password = null;
+      public static KeyStore trustStore;
+      public static KeyStore keyStore;
+
+      public static Credential globalCredentials = null;
 
       public static String currentConversation = null;
 
       public static PublicWriter publicWriter;
       public static DatabaseManager databaseManager;
 
+      Handler credentialsHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                  //if BAD
+                  if (msg.arg1 == 1) {
+                        Intent intent = new Intent(MainActivity.this, CredentialsActivity.class);
+                        startActivityForResult(intent, 0);
+                  } else if (msg.arg1 == 0) {
+                        initGUI();
+                  }
+            }
+      };
+
+      private Thread fetchCredentialsThread = new Thread() {
+            @Override
+            public void run() {
+                  globalCredentials = MainActivity.databaseManager.getCredentials();
+                  Message msg = new Message();
+                  //0 = OK, 1 = BAD
+                  msg.arg1 = globalCredentials == null ? 1 : 0;
+                  credentialsHandler.sendMessage(msg);
+            }
+      };
+
       @Override
       protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
+            super.onCreate(null);
             setContentView(R.layout.activity_main);
 
+            initKeyStores();
+            initDatabase();
+            fetchCredentialsThread.start();
+      }
+
+      @Override
+      protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+            if (requestCode != 0 || data == null || resultCode != RESULT_OK) {
+                  finish();
+                  return;
+            }
+
+            String username = data.getStringExtra("username");
+            String password = data.getStringExtra("password");
+            String ipAddress = data.getStringExtra("ip");
+
+            globalCredentials = new Credential(username, password, ipAddress);
+            initGUI();
+      }
+
+      @Override
+      public boolean onCreateOptionsMenu(Menu menu) {
+            getMenuInflater().inflate(R.menu.main_menu, menu);
+            return super.onCreateOptionsMenu(menu);
+      }
+
+      @Override
+      public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+            //if (item.getItemId() == R.id.change_server_option)
+            return super.onOptionsItemSelected(item);
+      }
+
+      private void initGUI() {
             MainTabsPagerAdapter tabsPagerAdapter = new MainTabsPagerAdapter(this, getSupportFragmentManager());
             FloatingActionButton addContacFAB = findViewById(R.id.add_contact_floating_button);
 
@@ -51,60 +115,36 @@ public class MainActivity extends AppCompatActivity {
             tabs.addOnTabSelectedListener(new TabLayout.BaseOnTabSelectedListener() {
                   @Override
                   public void onTabSelected(TabLayout.Tab tab) {
-                        if (tab.getText().toString().equals(getResources().getString(R.string.tab_chats))) {
+                        if (tab.getText().toString().equals(getResources().getString(R.string.tab_chats)))
                               addContacFAB.hide();
-                        } else {
+                        else
                               addContacFAB.show();
-                        }
                   }
-
                   @Override
                   public void onTabUnselected(TabLayout.Tab tab) { }
-
                   @Override
                   public void onTabReselected(TabLayout.Tab tab) { }
             });
-            addContacFAB.setOnClickListener((v) -> {
-                  startActivity(new Intent(this, NewContactActivity.class));
-            });
+            addContacFAB.setOnClickListener((v) ->
+                  startActivity(new Intent(this, NewContactActivity.class))
+            );
 
-            initDatabase();
             initMainListenerThread();
-
-            Intent intent = new Intent(this, CredentialsActivity.class);
-            startActivityForResult(intent, 0);
       }
 
-      @Override
-      protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-            if (requestCode != 0 || data == null)
-                  return;
+      private void initKeyStores() {
+            try {
+                  trustStore = KeyStore.getInstance("BKS");
+                  trustStore.load(getResources().openRawResource(R.raw.kafkarootca), "123456".toCharArray());
 
-            if (resultCode != RESULT_OK)
-                  return;//handle error
-
-            username = data.getStringExtra("username");
-            password = data.getStringExtra("password");
-      }
-
-      @Override
-      public boolean onCreateOptionsMenu(Menu menu) {
-            getMenuInflater().inflate(R.menu.main_menu, menu);
-            return super.onCreateOptionsMenu(menu);
-      }
-
-      @Override
-      public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-            switch (item.getItemId()) {
-                  case R.id.user_pass_option:
-                        startActivity(new Intent(this, CredentialsActivity.class));
-                        break;
-                  case R.id.share_code_option:
-                        break;
+                  keyStore = KeyStore.getInstance("BKS");
+                  keyStore.load(getResources().openRawResource(R.raw.client), "123456".toCharArray());
+            } catch (Exception e) {
+                  Log.d("CERT", e.getMessage());
+                  e.printStackTrace();
             }
-
-            return super.onOptionsItemSelected(item);
       }
+
       /**
        * Initialize RoomDatabase shared var for all threads.
        */
@@ -117,16 +157,6 @@ public class MainActivity extends AppCompatActivity {
        * Initializes the main listener thread with SSL configurations.
        */
       private void initMainListenerThread() {
-            try {
-                  KeyStore trustStore = KeyStore.getInstance("BKS");
-                  trustStore.load(getResources().openRawResource(R.raw.kafkarootca), "123456".toCharArray());
-
-                  KeyStore keyStore = KeyStore.getInstance("BKS");
-                  keyStore.load(getResources().openRawResource(R.raw.client), "123456".toCharArray());
-
-                  new MainListenerThread(keyStore, trustStore).start();
-            } catch (Exception e) {
-                  e.printStackTrace();
-            }
+            new MainListenerThread().start();
       }
 }

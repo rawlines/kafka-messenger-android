@@ -4,33 +4,25 @@ import android.util.Log;
 
 import com.github.MainActivity;
 import com.github.db.conversation.ConversationMessage;
-import com.github.utils.NetworkQueues;
 import com.github.utils.PublicWriter;
+import com.github.utils.SSLFactory;
 import com.rest.net.AcknPacket;
 import com.rest.net.ConsumePacket;
+import com.rest.net.CreaPacket;
 import com.rest.net.Packet;
 import com.rest.net.Packet.PacketType;
 import com.rest.net.PacketReader;
 import com.rest.net.PacketWriter;
 
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.SecureRandom;
 import java.util.List;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
 
 public class MainListenerThread extends Thread {
       private final short RETRY_TIMEOUT = 5000;
       private final short KEEPALIVE_TIMEOUT = 5000;
       private final short CHECKUNSENT_TIMEOUT = 30000;
-
-      private KeyStore keyStore;
-      private KeyStore trustStore;
 
       private PacketReader pReader;
 
@@ -48,12 +40,12 @@ public class MainListenerThread extends Thread {
 
       private Runnable unSentMessagesRunnable = () -> {
             List<ConversationMessage> unsuccess = MainActivity.databaseManager.getUnsuccessMessages();
-            NetworkQueues.producedWithoutAck.clear();
-            NetworkQueues.producedWithoutAck.addAll(unsuccess);
+            PublicWriter.producedWithoutAck.clear();
+            PublicWriter.producedWithoutAck.addAll(unsuccess);
             try {
                   while (!Thread.interrupted()) {
-                        Log.d("CONS", "Without ACK:" + NetworkQueues.producedWithoutAck.size());
-                        for (ConversationMessage msg : NetworkQueues.producedWithoutAck) {
+                        Log.d("CONS", "Without ACK:" + PublicWriter.producedWithoutAck.size());
+                        for (ConversationMessage msg : PublicWriter.producedWithoutAck) {
                               MainActivity.publicWriter.sendPROD(msg.conversation, msg.content);
                         }
                         Thread.sleep(CHECKUNSENT_TIMEOUT);
@@ -61,21 +53,16 @@ public class MainListenerThread extends Thread {
             } catch (Exception ignored) {}
       };
 
-      public MainListenerThread(KeyStore keyStore, KeyStore trustStore) {
-            this.keyStore = keyStore;
-            this.trustStore = trustStore;
-      }
-
       @Override
       public void run() {
             while (true) {
                   try {
-                        prepareEnvironment();
+                        if (MainActivity.globalCredentials == null)
+                              continue;
 
-                        if (MainActivity.username != null && MainActivity.password != null) {
-                              sendAuth();
-                              prepareSubThreads();
-                        }
+                        prepareEnvironment();
+                        sendAuth();
+                        prepareSubThreads();
 
 
                         while (!Thread.interrupted()) {
@@ -125,17 +112,9 @@ public class MainListenerThread extends Thread {
        * @throws Exception - exception
        */
       private void prepareEnvironment() throws Exception {
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init(trustStore);
-
-            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            keyManagerFactory.init(keyStore, "123456".toCharArray());
-
-            SSLContext sslctx = SSLContext.getInstance("TLSv1.2");
-            sslctx.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
-
-            SSLSocketFactory factory = sslctx.getSocketFactory();
-            SSLSocket socket = (SSLSocket) factory.createSocket("192.168.0.100", 8081);
+            String[] splitted = MainActivity.globalCredentials.ipAddress.split(":");
+            SSLSocketFactory factory = SSLFactory.getSSLFactory(MainActivity.trustStore, MainActivity.keyStore);
+            SSLSocket socket = (SSLSocket) factory.createSocket(splitted[0], Integer.parseInt(splitted[1]));
 
             this.pReader = new PacketReader(socket.getInputStream());
             MainActivity.publicWriter = new PublicWriter(new PacketWriter(socket.getOutputStream()));
@@ -145,11 +124,9 @@ public class MainListenerThread extends Thread {
 
       /**
        * Method for sending an {@link com.rest.net.AuthPacket} to the server
-       *
-       * @throws IOException - Stream errors
        */
-      private void sendAuth() throws IOException {
-            MainActivity.publicWriter.sendAUTH(MainActivity.username, MainActivity.password);
+      private void sendAuth() {
+            MainActivity.publicWriter.sendAUTH(MainActivity.globalCredentials.username, MainActivity.globalCredentials.password);
             Log.d("CONS", "Auth packet sent");
       }
 
@@ -179,13 +156,10 @@ public class MainListenerThread extends Thread {
        * @param p - The packet received
        */
       private void acknPacket(AcknPacket p) {
-            if (p.getCommand() != PacketType.PROD)
-                  return;
-
-            ConversationMessage msg = NetworkQueues.producedWithoutAck.poll();
-            if (msg != null) {
-                  MainActivity.databaseManager.setMessageAsSuccess(msg);
-                  Log.d("CONS", "ACK " + msg.conversation + " " +  msg.timestamp);
+            if (p.getCommand() == PacketType.PROD) {
+                  ConversationMessage msg = PublicWriter.producedWithoutAck.poll();
+                  if (msg != null)
+                        MainActivity.databaseManager.setMessageAsSuccess(msg);
             }
       }
 }

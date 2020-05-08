@@ -13,30 +13,29 @@ import com.github.R;
 import com.github.db.contact.Contact;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class ContactsFragmentRecyclerAdapter extends RecyclerView.Adapter<ContactsFragmentRecyclerAdapter.ViewHolder> {
     private ArrayList<Contact> contacts = new ArrayList<>();
-    private Consumer<View> callback;
+    private Consumer<View> clickCallback;
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public ViewHolder(View v) {
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        ViewHolder(View v) {
             super(v);
         }
     }
 
-    public ContactsFragmentRecyclerAdapter(Consumer<View> c) {
-        this.callback = c;
+    public ContactsFragmentRecyclerAdapter(Consumer<View> clickCallback) {
+        this.clickCallback = clickCallback;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.contactview_recyclerview, parent, false);
-
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
+        return new ViewHolder(v);
     }
 
     @Override
@@ -49,7 +48,7 @@ public class ContactsFragmentRecyclerAdapter extends RecyclerView.Adapter<Contac
 
         alias.setText(currentContact.alias);
         userName.setText(currentContact.username);
-        card.setOnClickListener(this.callback::accept);
+        card.setOnClickListener(this.clickCallback::accept);
     }
 
     @Override
@@ -61,5 +60,25 @@ public class ContactsFragmentRecyclerAdapter extends RecyclerView.Adapter<Contac
         this.contacts.clear();
         this.contacts.addAll(contacts);
         this.notifyDataSetChanged();
+    }
+
+    /**
+     * If exists, the contact with thus username will be removed
+     * @param username - username of contact to remove
+     */
+    public void removeContactFromList(String username) {
+        boolean done = false;
+        int pos = 0;
+        Iterator<Contact> iter = contacts.iterator();
+        while (iter.hasNext() && !done) {
+            Contact c = iter.next();
+            if (c.username.equals(username)) {
+                iter.remove();
+                this.notifyItemRemoved(pos);
+                done = true;
+            } else {
+                pos++;
+            }
+        }
     }
 }

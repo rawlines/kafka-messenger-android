@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="option_share">Compartir mi código</string>
-    <string name="option_userandpass">Usuario y contraseña</string>
+    <string name="option_changeserver">Cambiar de servidor</string>
 </resources>

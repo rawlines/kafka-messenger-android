@@ -5,7 +5,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,7 +20,7 @@ import com.github.ui.adapters.ConversationRecyclerViewAdapter;
 import com.github.db.conversation.ConversationMessage;
 import com.github.db.conversation.ConversationMessage.MetaData;
 import com.github.utils.Cryptography;
-import com.github.utils.NetworkQueues;
+import com.github.utils.PublicWriter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -61,10 +60,10 @@ public class ChatActivity extends AppCompatActivity {
             messagePutter.sendMessage(msg);
       };
 
-      private class MessageSenderThread implements Runnable {
+      private static class MessageSenderRunnable implements Runnable {
             private ConversationMessage msg;
 
-            MessageSenderThread(ConversationMessage msg) {
+            MessageSenderRunnable(ConversationMessage msg) {
                   this.msg = msg;
             }
 
@@ -72,7 +71,7 @@ public class ChatActivity extends AppCompatActivity {
             public void run() {
                   try {
                         MainActivity.databaseManager.insertConversationMessage(msg);
-                        NetworkQueues.producedWithoutAck.add(msg);
+                        PublicWriter.producedWithoutAck.add(msg);
                         MainActivity.publicWriter.sendPROD(msg.conversation, msg.content);
                   } catch (Exception ignored) {}
             }
@@ -91,12 +90,26 @@ public class ChatActivity extends AppCompatActivity {
 
             initChatGUI();
             new Thread(backgroundDBMessageFetcher).start();
+      }
+
+      @Override
+      protected void onResume() {
+            super.onResume();
 
             //Add the database listener
-            MainActivity.databaseManager.addConversationCallback(conversation,
+            MainActivity.databaseManager.addConversationCallback("conversationListener", conversation,
                   this::databaseListener);
-            MainActivity.databaseManager.addSuccessCallback(conversation,
+            MainActivity.databaseManager.addMessageSuccessCallback("conversationSuccessListener", conversation,
                   this::successListener);
+      }
+
+      @Override
+      protected void onPause() {
+            super.onPause();
+
+            //Remove the database listeners
+            MainActivity.databaseManager.removeConversationCallback("conversationListener", conversation);
+            MainActivity.databaseManager.removeMessageSuccessCallback("conversationSuccessListener", conversation);
       }
 
       @Override
@@ -129,13 +142,13 @@ public class ChatActivity extends AppCompatActivity {
             MetaData md = new MetaData();
             md.timestamp = System.currentTimeMillis();
             md.plain = s;
-            md.source = MainActivity.username;
+            md.source = MainActivity.globalCredentials.username;
 
             ConversationMessage msg = ConversationMessage.fromCryptedBytes(Cryptography.metadataToCryptedBytes(md));
             msg.messageType = SENT;
             msg.conversation = conversation;
 
-            new Thread(new MessageSenderThread(msg)).start();
+            new Thread(new MessageSenderRunnable(msg)).start();
 
             tv.setText("");
       }

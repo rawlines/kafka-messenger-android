@@ -29,10 +29,11 @@ import com.github.utils.Cryptography;
 import java.util.ArrayList;
 
 public class RecyclerViewFragment extends Fragment {
-    private RecyclerView recyclerView;
+    private RecyclerView contactsRecyclerView;
+    private RecyclerView chatsRecyclerView;
+
     private ContactsFragmentRecyclerAdapter mContactAdapter;
     private ChatFragmentRecyclerAdapter mChatAdapter;
-    private RecyclerView.LayoutManager layoutManager;
 
     private int tabResource;
 
@@ -94,7 +95,7 @@ public class RecyclerViewFragment extends Fragment {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super.onCreate(null);
     }
 
     @Nullable
@@ -105,14 +106,24 @@ public class RecyclerViewFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        layoutManager = new LinearLayoutManager(view.getContext());
-        recyclerView = view.findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(layoutManager);
+        switch (tabResource) {
+            case R.string.tab_chats:
+                chatsRecyclerView = view.findViewById(R.id.recycler_view);
+                chatsRecyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
+                break;
+            case  R.string.tab_contacts:
+                contactsRecyclerView = view.findViewById(R.id.recycler_view);
+                contactsRecyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
+                break;
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
+
+        MainActivity.databaseManager.removeConversationCallback("chatListener", null);
+        MainActivity.databaseManager.removeConversationCallback("contactListener", null);
     }
 
     @Override
@@ -131,23 +142,32 @@ public class RecyclerViewFragment extends Fragment {
 
     private void chatsFragment() {
         mChatAdapter = new ChatFragmentRecyclerAdapter(this::onChatClick);
-        recyclerView.setAdapter(mChatAdapter);
+        chatsRecyclerView.setAdapter(mChatAdapter);
         new Thread(chatsFetchRunnable).start();
 
         //Listener for incoming messages
-        MainActivity.databaseManager.addConversationCallback(null, (msg) -> {
+        MainActivity.databaseManager.addConversationCallback("chatListener", null, (msg) -> {
             if (msg.conversation == null)
                 return;
 
             if (!msg.conversation.equals(MainActivity.currentConversation))
-                mChatAdapter.updateChat(msg);
+                mChatAdapter.markConversationAsUnread(msg);
         });
     }
 
     private void contactsFragment() {
         mContactAdapter = new ContactsFragmentRecyclerAdapter(this::onContactClick);
-        recyclerView.setAdapter(mContactAdapter);
+        contactsRecyclerView.setAdapter(mContactAdapter);
         new Thread(contactsFetchRunnable).start();
+
+        MainActivity.databaseManager.addConversationCallback("contactListener",null, (msg) -> {
+            if (msg.conversation == null)
+                return;
+
+            if (!msg.conversation.equals(MainActivity.currentConversation))
+                mContactAdapter.removeContactFromList(msg.conversation);
+        });
+
     }
 
     private void onContactClick(View v) {
