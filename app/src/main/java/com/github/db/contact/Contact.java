@@ -22,12 +22,6 @@ public class Contact implements Serializable {
     @ColumnInfo(name = "unread")
     public boolean unread = false;
 
-    @ColumnInfo(name = "lastMessageTime")
-    public long lastMessageTime = 0;
-
-    @ColumnInfo(name = "lastMessageType")
-    public short lastMessageType = -1;
-
     public Contact(String username, String alias, byte[] publicKey) {
         this.username = username;
         this.alias = alias;

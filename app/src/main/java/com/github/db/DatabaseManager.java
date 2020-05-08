@@ -104,8 +104,6 @@ public final class DatabaseManager {
             else
                   calls = allConversationCallbacks;
 
-            setContactLastMessage(msg.conversation, msg.timestamp, msg.messageType);
-
             ArrayList<Callback<ConversationMessage>> finalCallbacks = new ArrayList<>();
             calls.forEach((entry) ->
                   entry.forEach((id, callback) -> finalCallbacks.add(callback))
@@ -209,6 +207,10 @@ public final class DatabaseManager {
             return conversationDao.getMessagesFromConversation(c);
       }
 
+      public synchronized ConversationMessage getLastConversationMessage(String conversation) {
+            return conversationDao.getLastMessageFromConversation(conversation);
+      }
+
       public synchronized List<ConversationMessage> getUnsuccessMessages() {
             return conversationDao.getUnsuccess();
       }
@@ -227,12 +229,12 @@ public final class DatabaseManager {
             doCallback(msg, finalCallback);
       }
 
-      public synchronized void insertContact(@NonNull Contact contact) {
-            this.contactDao.insert(contact);
+      public synchronized void removeConversationMessage(ConversationMessage msg) {
+            this.conversationDao.removeConversationMessage(msg.timestamp, msg.messageType);
       }
 
-      public synchronized void setContactLastMessage(String username, long time, short type) {
-            this.contactDao.setLastMessage(username, time, type);
+      public synchronized void insertContact(@NonNull Contact contact) {
+            this.contactDao.insert(contact);
       }
 
       public synchronized List<Contact> getContacts() {

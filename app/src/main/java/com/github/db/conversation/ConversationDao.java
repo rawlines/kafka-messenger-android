@@ -20,6 +20,12 @@ public interface ConversationDao {
     @Query("SELECT * FROM ConversationMessage WHERE timestamp LIKE :timestamp AND messageType LIKE :type")
     ConversationMessage getUniqueMessage(long timestamp, short type);
 
+    @Query("SELECT * FROM ConversationMessage WHERE conversation LIKE :conversation ORDER BY timestamp DESC LIMIT 1")
+    ConversationMessage getLastMessageFromConversation(String conversation);
+
+    @Query("DELETE FROM ConversationMessage WHERE timestamp LIKE :timestamp AND messageType LIKE :messageType")
+    void removeConversationMessage(long timestamp, short messageType);
+
     @Query("UPDATE ConversationMessage SET success = 1 WHERE timestamp = :id")
     void setAsSuccess(long id);
 

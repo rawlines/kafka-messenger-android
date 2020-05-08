@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_bubble_constraint"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#00FFFFFF">
@@ -30,7 +31,7 @@
             tools:visibility="visible" />
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/materialCardView"
+            android:id="@+id/receiver_card"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checkable="true"
@@ -73,6 +74,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/sender_card"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checkable="true"

@@ -9,6 +9,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,6 +26,12 @@ import static com.github.db.conversation.ConversationMessage.SENT;
 
 public class ConversationRecyclerViewAdapter extends RecyclerView.Adapter<ConversationRecyclerViewAdapter.ViewHolder> {
     private List<ConversationMessage> messages = new ArrayList<>();
+    private RecyclerClickListener onLongClick;
+    private RecyclerClickListener onClick;
+
+    public interface RecyclerClickListener {
+        boolean action(View v, ConversationMessage msg);
+    }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ViewHolder(View v) {
@@ -32,7 +39,10 @@ public class ConversationRecyclerViewAdapter extends RecyclerView.Adapter<Conver
         }
     }
 
-    public ConversationRecyclerViewAdapter() { }
+    public ConversationRecyclerViewAdapter(RecyclerClickListener longCLickListener, RecyclerClickListener clickListener) {
+        this.onLongClick = longCLickListener;
+        this.onClick = clickListener;
+    }
 
     @NonNull
     @Override
@@ -70,6 +80,10 @@ public class ConversationRecyclerViewAdapter extends RecyclerView.Adapter<Conver
             } else {
                 bubble_quote.setVisibility(View.GONE);
             }
+
+            CardView sender_card = holder.itemView.findViewById(R.id.sender_card);
+            sender_card.setOnLongClickListener((v) -> this.onLongClick.action(v, currentMsg));
+            sender_card.setOnClickListener((v) -> this.onClick.action(v, currentMsg));
         } else {
             bubble_quote = holder.itemView.findViewById(R.id.bubble_receiber_quote);
             bubble_receiber.setVisibility(View.VISIBLE);
@@ -82,6 +96,10 @@ public class ConversationRecyclerViewAdapter extends RecyclerView.Adapter<Conver
             } else {
                 bubble_quote.setVisibility(View.GONE);
             }
+
+            CardView receiver_card = holder.itemView.findViewById(R.id.receiver_card);
+            receiver_card.setOnLongClickListener((v) -> this.onLongClick.action(v, currentMsg));
+            receiver_card.setOnClickListener((v) -> this.onClick.action(v, currentMsg));
         }
 
         //here will have to decrypt
@@ -116,5 +134,13 @@ public class ConversationRecyclerViewAdapter extends RecyclerView.Adapter<Conver
         int start = this.messages.size();
         this.messages.addAll(messages);
         this.notifyItemRangeInserted(start, messages.size());
+    }
+
+    public void removeIndexes(List<ConversationMessage> messages) {
+        messages.forEach((msg) -> {
+            int i = this.messages.indexOf(msg);
+            this.messages.remove(i);
+            this.notifyItemRemoved(i);
+        });
     }
 }

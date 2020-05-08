@@ -11,17 +11,14 @@ public interface ContactDao {
     @Query("SELECT * FROM Contact WHERE username LIKE :username")
     Contact getContact(String username);
 
-    @Query("SELECT * FROM Contact WHERE lastMessageTime != 0 AND lastMessageType != -1")
+    @Query("SELECT * FROM Contact WHERE (SELECT count(*) FROM ConversationMessage WHERE conversation LIKE username) > 0")
     List<Contact> getActive();
 
-    @Query("SELECT * FROM Contact WHERE lastMessageTime = 0 AND lastMessageType = -1")
+    @Query("SELECT * FROM Contact WHERE (SELECT count(*) FROM ConversationMessage WHERE conversation LIKE username) = 0")
     List<Contact> getInactive();
 
     @Query("UPDATE Contact SET unread = :value WHERE username LIKE :username")
     void setUnread(String username, boolean value);
-
-    @Query("UPDATE Contact SET lastMessageTime = :time, lastMessageType = :type WHERE username LIKE :username")
-    void setLastMessage(String username, long time, short type);
 
     @Insert
     void insert(Contact contact);

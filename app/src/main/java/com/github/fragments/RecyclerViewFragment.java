@@ -63,7 +63,7 @@ public class RecyclerViewFragment extends Fragment {
         if (!contacts.isEmpty()) {
             for (Contact c : contacts) {
                 ConversationMessage currentMsg =
-                      MainActivity.databaseManager.getConversationMessages(c.lastMessageTime, c.lastMessageType);
+                      MainActivity.databaseManager.getLastConversationMessage(c.username);
 
                 String plain = Cryptography.parseCrypted(currentMsg.content).plain;
                 info.add(new ChatData(c, plain));
