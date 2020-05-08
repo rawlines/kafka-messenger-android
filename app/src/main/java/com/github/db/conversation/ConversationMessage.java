@@ -54,7 +54,7 @@ public class ConversationMessage implements Serializable {
     public static ConversationMessage fromCryptedBytes(byte[] bytes) {
         ConversationMessage msg = new ConversationMessage(bytes);
 
-        MetaData md = Cryptography.parseCrypted(bytes);
+        MetaData md = Cryptography.decryptBytes(bytes);
         msg.timestamp = md.timestamp;
         msg.conversation = md.source;
 

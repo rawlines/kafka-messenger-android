@@ -8,7 +8,7 @@ import com.google.gson.Gson;
 import java.nio.charset.StandardCharsets;
 
 public class Cryptography {
-      public static MetaData parseCrypted(byte[] bytes) {
+      public static MetaData decryptBytes(byte[] bytes) {
             String s = new String(bytes, StandardCharsets.ISO_8859_1);
             Log.d("CONS", "Parsing; " + s);
             Gson gson = new Gson();

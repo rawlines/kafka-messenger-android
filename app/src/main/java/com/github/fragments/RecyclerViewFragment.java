@@ -65,7 +65,7 @@ public class RecyclerViewFragment extends Fragment {
                 ConversationMessage currentMsg =
                       MainActivity.databaseManager.getLastConversationMessage(c.username);
 
-                String plain = Cryptography.parseCrypted(currentMsg.content).plain;
+                String plain = Cryptography.decryptBytes(currentMsg.content).plain;
                 info.add(new ChatData(c, plain));
             }
 

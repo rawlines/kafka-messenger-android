@@ -111,7 +111,7 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
         while (iter.hasNext() && !found) {
             ChatData currentData = iter.next();
             if (msg.conversation.equals(currentData.contact.username)) {
-                currentData.lastMessage = Cryptography.parseCrypted(msg.content).plain;
+                currentData.lastMessage = Cryptography.decryptBytes(msg.content).plain;
 
                 //set unread,
                 currentData.contact.unread = true; //immediate variable
@@ -138,7 +138,7 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
             //new conversation entry is created
             new Thread(() -> {
                 Contact contact = MainActivity.databaseManager.getContact(msg.conversation);
-                String plain = Cryptography.parseCrypted(msg.content).plain;
+                String plain = Cryptography.decryptBytes(msg.content).plain;
 
                 ChatData chatData = new ChatData(contact, plain);
 
