@@ -17,6 +17,10 @@
     <string name="credentials_toolbar_title">Autenticación</string>
     <string name="im_new_label">Soy nuevo</string>
     <string name="continue_login">Continuar</string>
+    <string name="rejected_registration">El servidor ha rechazado el registro, prueba con otro nombre de usuario</string>
+
+    <string name="general_error">Ha ocurrido un error:
+    </string>
 
     <string name="server_selector_title">Elige un servidor</string>
     <string name="server_selector_ok">Aceptar</string>

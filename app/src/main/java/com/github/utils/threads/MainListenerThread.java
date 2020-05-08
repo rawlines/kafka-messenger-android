@@ -36,8 +36,6 @@ public class MainListenerThread extends Thread {
       private Thread keepAliveThread;
       private Thread unSentMessagesThread;
 
-      private boolean logged = false;
-
       private MainActivity mainActivity;
 
       private Runnable keepAliveRunnable = () -> {
@@ -64,6 +62,8 @@ public class MainListenerThread extends Thread {
             } catch (Exception ignored) {}
       };
 
+      //control vars for handling disconnect and reject statuses
+      private boolean logged = false;
       private Snackbar disconnectSnackbar = null;
 
       //object used as locker for main thread
@@ -89,9 +89,7 @@ public class MainListenerThread extends Thread {
                         case CONNECTION_ERROR:
                               disconnectSnackbar = Snackbar.make(mainActivity.getWindow().getDecorView().getRootView(),
                                     "Te has desconectado, reintentando en 5 secs.", Snackbar.LENGTH_INDEFINITE)
-                                    .setAction("CAMBIAR SERVIDOR", (v) -> {
-                                          mainActivity.changeServerRoutine();
-                                    })
+                                    .setAction("CAMBIAR SERVIDOR", (v) -> mainActivity.changeServerRoutine())
                                     .setActionTextColor(mainActivity.getColor(R.color.secondaryLightColor));
                               disconnectSnackbar.show();
                               break;
@@ -193,8 +191,7 @@ public class MainListenerThread extends Thread {
        * Method for sending an {@link com.rest.net.AuthPacket} to the server
        */
       private void sendAuth() {
-            //MainActivity.publicWriter.sendAUTH(MainActivity.globalCredentials.username, MainActivity.globalCredentials.password);
-            MainActivity.publicWriter.sendAUTH("penes", MainActivity.globalCredentials.password);
+            MainActivity.publicWriter.sendAUTH(MainActivity.globalCredentials.username, MainActivity.globalCredentials.password);
             Log.d("CONS", "Auth packet sent");
       }
 
