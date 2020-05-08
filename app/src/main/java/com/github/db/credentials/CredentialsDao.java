@@ -16,6 +16,9 @@ public interface CredentialsDao {
     @Query("UPDATE Credential SET username = :username WHERE id = 1")
     void modifyUser(String username);
 
+    @Query("UPDATE Credential SET ipAddress = :ipAddress WHERE id = 1")
+    void changeIpAddress(String ipAddress);
+
     @Insert
     void insert(Credential credential);
 }

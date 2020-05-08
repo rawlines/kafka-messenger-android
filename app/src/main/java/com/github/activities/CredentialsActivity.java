@@ -13,7 +13,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.github.MainActivity;
 import com.github.R;
 import com.github.db.credentials.Credential;
 import com.github.utils.PublicWriter;

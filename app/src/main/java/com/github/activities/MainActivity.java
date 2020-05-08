@@ -1,4 +1,4 @@
-package com.github;
+package com.github.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,9 +8,10 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
-import com.github.activities.CredentialsActivity;
-import com.github.activities.NewContactActivity;
+import com.github.R;
 import com.github.db.AppDatabase;
 import com.github.db.credentials.Credential;
 import com.github.ui.adapters.MainTabsPagerAdapter;
@@ -19,9 +20,11 @@ import com.github.utils.PublicWriter;
 import com.github.utils.threads.MainListenerThread;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
+import com.jakewharton.processphoenix.ProcessPhoenix;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.room.Room;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
@@ -96,7 +99,37 @@ public class MainActivity extends AppCompatActivity {
 
       @Override
       public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-            //if (item.getItemId() == R.id.change_server_option)
+            if (item.getItemId() != R.id.change_server_option)
+                  return false;
+
+            String[] servers = getResources().getStringArray(R.array.server_list);
+            int selectedIndx = 0;
+            boolean done = false;
+            while (selectedIndx < servers.length && !done) {
+                  if (servers[selectedIndx].equals(globalCredentials.ipAddress))
+                        done = true;
+                  else
+                        selectedIndx++;
+            }
+
+            final Handler handler = new Handler(Looper.getMainLooper()) {
+                  @Override
+                  public void handleMessage(@NonNull Message msg) {
+                        ProcessPhoenix.triggerRebirth(MainActivity.this);
+                  }
+            };
+
+            new AlertDialog.Builder(this)
+                  .setTitle(R.string.server_selector_title)
+                  .setSingleChoiceItems(servers, selectedIndx, (dialog, which) -> {
+                        globalCredentials.ipAddress = servers[which];
+                  }).setPositiveButton(R.string.server_selector_ok, (dialog, which) -> {
+                        new Thread(() -> {
+                              MainActivity.databaseManager.changeIpAddress(globalCredentials.ipAddress);
+                              handler.sendMessage(new Message());
+                        }).start();
+                  }).show();
+
             return super.onOptionsItemSelected(item);
       }
 

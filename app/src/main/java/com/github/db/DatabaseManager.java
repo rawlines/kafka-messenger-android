@@ -266,4 +266,8 @@ public final class DatabaseManager {
       public synchronized Credential getCredentials() {
             return this.credentialsDao.getCredentials();
       }
+
+      public synchronized void changeIpAddress(String ipAddress) {
+            this.credentialsDao.changeIpAddress(ipAddress);
+      }
 }

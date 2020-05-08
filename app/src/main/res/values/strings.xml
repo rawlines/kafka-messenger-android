@@ -17,4 +17,7 @@
     <string name="credentials_toolbar_title">Autenticación</string>
     <string name="im_new_label">Soy nuevo</string>
     <string name="continue_login">Continuar</string>
+
+    <string name="server_selector_title">Elige un servidor</string>
+    <string name="server_selector_ok">Aceptar</string>
 </resources>

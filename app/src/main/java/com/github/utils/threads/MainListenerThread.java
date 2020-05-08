@@ -2,13 +2,12 @@ package com.github.utils.threads;
 
 import android.util.Log;
 
-import com.github.MainActivity;
+import com.github.activities.MainActivity;
 import com.github.db.conversation.ConversationMessage;
 import com.github.utils.PublicWriter;
 import com.github.utils.SSLFactory;
 import com.rest.net.AcknPacket;
 import com.rest.net.ConsumePacket;
-import com.rest.net.CreaPacket;
 import com.rest.net.Packet;
 import com.rest.net.Packet.PacketType;
 import com.rest.net.PacketReader;

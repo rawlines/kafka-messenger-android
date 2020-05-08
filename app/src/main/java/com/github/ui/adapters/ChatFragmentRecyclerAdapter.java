@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.github.MainActivity;
+import com.github.activities.MainActivity;
 import com.github.R;
 import com.github.db.contact.Contact;
 import com.github.db.conversation.ConversationMessage;

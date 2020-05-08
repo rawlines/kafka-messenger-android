@@ -43,4 +43,6 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+
+    implementation 'com.jakewharton:process-phoenix:2.0.0'
 }

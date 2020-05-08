@@ -15,7 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.github.MainActivity;
 import com.github.R;
 import com.github.db.contact.Contact;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;

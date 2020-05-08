@@ -16,7 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.github.MainActivity;
+import com.github.activities.MainActivity;
 import com.github.R;
 import com.github.activities.ChatActivity;
 import com.github.db.contact.Contact;

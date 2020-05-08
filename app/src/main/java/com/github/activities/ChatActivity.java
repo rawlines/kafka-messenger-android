@@ -20,7 +20,6 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.github.MainActivity;
 import com.github.R;
 import com.github.ui.adapters.ConversationRecyclerViewAdapter;
 import com.github.db.conversation.ConversationMessage;
