@@ -1,13 +1,18 @@
 package com.github.utils.threads;
 
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.Window;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.github.R;
+import com.github.activities.CredentialsActivity;
 import com.github.activities.MainActivity;
 import com.github.db.conversation.ConversationMessage;
 import com.github.utils.PublicWriter;
@@ -43,6 +48,7 @@ public class MainListenerThread extends Thread {
                   while (!Thread.interrupted()) {
                         Thread.sleep(KEEPALIVE_TIMEOUT);
                         MainActivity.publicWriter.sendKEEP();
+                        Log.d("KEEP", "KEEP");
                   }
             } catch (Exception ignored) { }
       };
@@ -67,7 +73,6 @@ public class MainListenerThread extends Thread {
       private Snackbar disconnectSnackbar = null;
 
       //object used as locker for main thread
-      private static final Object LOCK = new Object();
       private static final int AUTH_ERROR = 0;
       private static final int CONNECTION_ERROR = 1;
       private final Handler offlineHandler = new Handler(Looper.getMainLooper()) {
@@ -78,10 +83,9 @@ public class MainListenerThread extends Thread {
                               Snackbar.make(mainActivity.getWindow().getDecorView().getRootView(),
                                     "El servidor te ha rechazado, Prueba con otras credenciales.", Snackbar.LENGTH_INDEFINITE)
                                     .setAction("ADELANTE", (v) -> {
-                                          //prompt new credentials
-                                          synchronized (LOCK) {
-                                                LOCK.notify();
-                                          }
+                                          Intent intent = new Intent(mainActivity, CredentialsActivity.class);
+                                          intent.putExtra("creds", MainActivity.globalCredentials);
+                                          mainActivity.startActivityForResult(intent, CredentialsActivity.CHANGE_CREDS_CODE);
                                     })
                                     .setActionTextColor(mainActivity.getColor(R.color.secondaryLightColor))
                                     .show();
@@ -94,6 +98,22 @@ public class MainListenerThread extends Thread {
                               disconnectSnackbar.show();
                               break;
                   }
+                  Window window = mainActivity.getWindow();
+                  window.setStatusBarColor(ContextCompat.getColor(mainActivity, R.color.secondaryDarkColor));
+            }
+      };
+
+      /**
+       * Show some response to the user when succesfully connected
+       */
+      private final Handler connectedHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                  Window window = mainActivity.getWindow();
+                  window.setStatusBarColor(ContextCompat.getColor(mainActivity, R.color.secondaryLightColor));
+                  Snackbar.make(mainActivity.getWindow().getDecorView().getRootView(),
+                        R.string.successfully_connected, Snackbar.LENGTH_SHORT)
+                        .show();
             }
       };
 
@@ -103,9 +123,6 @@ public class MainListenerThread extends Thread {
       public void run() {
             while (true) {
                   try {
-                        if (MainActivity.globalCredentials == null)
-                              continue;
-
                         prepareEnvironment();
                         sendAuth();
                         prepareSubThreads();
@@ -114,6 +131,8 @@ public class MainListenerThread extends Thread {
                               disconnectSnackbar.dismiss();
                               disconnectSnackbar = null;
                         }
+
+                        connectedHandler.sendMessage(new Message());
 
                         while (!Thread.interrupted()) {
                               Packet packet = pReader.readPacket();
@@ -146,7 +165,7 @@ public class MainListenerThread extends Thread {
                   //Will detect if has successfully logged in and with that info display one
                   //message or another
                   try {
-                        synchronized (LOCK) {
+                        synchronized (this) {
                               Message m = new Message();
                               m.arg1 = logged ? CONNECTION_ERROR : AUTH_ERROR;
                               offlineHandler.sendMessage(m);
@@ -154,7 +173,7 @@ public class MainListenerThread extends Thread {
                               if (logged)
                                     Thread.sleep(RETRY_TIMEOUT);
                               else
-                                    LOCK.wait();
+                                    this.wait();
                         }
                   } catch (Exception ignored) {}
             }

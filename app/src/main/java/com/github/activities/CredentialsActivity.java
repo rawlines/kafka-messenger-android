@@ -16,12 +16,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.R;
 import com.github.db.credentials.Credential;
 import com.github.utils.PublicWriter;
 import com.github.utils.SSLFactory;
+import com.google.android.material.snackbar.Snackbar;
 import com.rest.commonutils.InputChecker;
 import com.rest.net.AcknPacket;
 import com.rest.net.DenyPacket;
@@ -35,6 +37,12 @@ import javax.net.ssl.SSLSocketFactory;
 import static com.rest.net.Packet.PacketType.CREA;
 
 public class CredentialsActivity extends AppCompatActivity {
+      public static final int NEW_SESSION_CODE = 0;
+      public static final int CHANGE_CREDS_CODE = 1;
+
+      //Check if we are creating new credentials or we are editing them
+      private boolean editing = false;
+
       private TextView usernameView;
       private TextView passwordView;
       private CheckBox registrationCheck;
@@ -101,12 +109,15 @@ public class CredentialsActivity extends AppCompatActivity {
             }
       }
 
-      private static class SaveOnDbRunnable implements Runnable {
+      private class SaveOnDbRunnable implements Runnable {
             Credential cred;
             SaveOnDbRunnable(Credential cred) { this.cred = cred; }
             @Override
             public void run() {
-                  MainActivity.databaseManager.createCredentials(cred);
+                  if (editing)
+                        MainActivity.databaseManager.updateCredentials(cred);
+                  else
+                        MainActivity.databaseManager.createCredentials(cred);
             }
       }
 
@@ -127,8 +138,15 @@ public class CredentialsActivity extends AppCompatActivity {
             loginButton = findViewById(R.id.login_buton);
             registrationProgressBar = findViewById(R.id.registration_progress_bar);
 
+            Credential creds = (Credential) getIntent().getSerializableExtra("creds");
+            if (creds != null) {
+                  usernameView.setText(creds.username);
+                  passwordView.setText(creds.password);
+                  editing = true;
+            }
+
             loginButton.setOnClickListener(this::onClick);
-            MainActivity.databaseManager.setNewUserSuccessCallback(this::onSuccess);
+            MainActivity.databaseManager.setCredentialUpdateCallback(this::onSuccess);
       }
 
       private void onClick(View v) {
@@ -138,8 +156,21 @@ public class CredentialsActivity extends AppCompatActivity {
             String pass = passwordView.getText().toString();
             String ip = serverSelector.getSelectedItem().toString();
 
-            if (!InputChecker.isValidUsername(user) || !InputChecker.isValidPassword(pass))
+            if (!InputChecker.isValidUsername(user)) {
+                  new AlertDialog.Builder(this)
+                        .setTitle(R.string.invalid_username_title)
+                        .setItems(R.array.username_requisites, null)
+                        .show();
                   return;
+            }
+
+            if (!InputChecker.isValidPassword(pass)) {
+                  new AlertDialog.Builder(this)
+                        .setTitle(R.string.invalid_password_title)
+                        .setItems(R.array.password_requisites, null)
+                        .show();
+                  return;
+            }
 
             if (register)
                   newUser(user, pass, ip);

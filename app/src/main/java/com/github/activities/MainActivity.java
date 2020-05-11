@@ -40,13 +40,15 @@ public class MainActivity extends AppCompatActivity {
       public static PublicWriter publicWriter;
       public static DatabaseManager databaseManager;
 
+      private Thread mainListenerThread;
+
       Handler credentialsHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(@NonNull Message msg) {
                   //if BAD
                   if (msg.arg1 == 1) {
                         Intent intent = new Intent(MainActivity.this, CredentialsActivity.class);
-                        startActivityForResult(intent, 0);
+                        startActivityForResult(intent, CredentialsActivity.NEW_SESSION_CODE);
                   } else if (msg.arg1 == 0) {
                         initGUI();
                   }
@@ -74,11 +76,28 @@ public class MainActivity extends AppCompatActivity {
             fetchCredentialsThread.start();
       }
 
+
+      /**
+       * Handle the result of the {@link CredentialsActivity}
+       *
+       * @param requestCode - Handle if are new credentials or modifying existing
+       * @param resultCode
+       * @param data
+       */
       @Override
       protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-            if (requestCode != 0 || data == null || resultCode != RESULT_OK) {
+            if (requestCode == CredentialsActivity.NEW_SESSION_CODE && (data == null || resultCode != RESULT_OK)) {
                   finish();
                   return;
+            }
+
+            if (requestCode == CredentialsActivity.CHANGE_CREDS_CODE) {
+                  //Unlock the listener thread
+                  synchronized (mainListenerThread) {
+                        mainListenerThread.notify();
+                  }
+                  if (data == null || resultCode != RESULT_OK)
+                        return;
             }
 
             String username = data.getStringExtra("username");
@@ -86,7 +105,9 @@ public class MainActivity extends AppCompatActivity {
             String ipAddress = data.getStringExtra("ip");
 
             globalCredentials = new Credential(username, password, ipAddress);
-            initGUI();
+
+            if (requestCode != CredentialsActivity.CHANGE_CREDS_CODE)
+                 initGUI();
       }
 
       @Override
@@ -141,6 +162,10 @@ public class MainActivity extends AppCompatActivity {
             initMainListenerThread();
       }
 
+
+      /**
+       * initialize keystores for SSL connection
+       */
       private void initKeyStores() {
             try {
                   trustStore = KeyStore.getInstance("BKS");
@@ -166,7 +191,8 @@ public class MainActivity extends AppCompatActivity {
        * Initializes the main listener thread with SSL configurations.
        */
       private void initMainListenerThread() {
-            new MainListenerThread(this).start();
+            this.mainListenerThread = new MainListenerThread(this);
+            this.mainListenerThread.start();
       }
 
       /**

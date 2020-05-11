@@ -58,7 +58,7 @@ public final class DatabaseManager {
       //when a message is added independenlty of conversation
       private ArrayList<HashMap<String, Callback<ConversationMessage>>> allConversationCallbacks = new ArrayList<>();
       //when credentials are set for first time
-      private Callback<Credential> newUserCallback;
+      private Callback<Credential> credentialUpdateCallback;
 
       private DatabaseManager(AppDatabase db) {
             this.conversationDao = db.conversationDao();
@@ -253,14 +253,22 @@ public final class DatabaseManager {
             this.contactDao.setUnread(username, value);
       }
 
-      public synchronized void setNewUserSuccessCallback(Callback<Credential> callback) {
-            this.newUserCallback = callback;
+      public synchronized void setCredentialUpdateCallback(Callback<Credential> callback) {
+            this.credentialUpdateCallback = callback;
       }
 
       public synchronized void createCredentials(Credential credential) {
             this.credentialsDao.insert(credential);
-            if (newUserCallback != null)
-                  doCallback(credential, new ArrayList<>(Collections.singletonList(newUserCallback)));
+            if (credentialUpdateCallback != null)
+                  doCallback(credential, new ArrayList<>(Collections.singletonList(credentialUpdateCallback)));
+      }
+
+      public synchronized void updateCredentials(Credential credential) {
+            this.credentialsDao.modifyUser(credential.username);
+            this.credentialsDao.modifyPassword(credential.password);
+            this.credentialsDao.changeIpAddress(credential.ipAddress);
+            if (credentialUpdateCallback != null)
+                  doCallback(credential, new ArrayList<>(Collections.singletonList(credentialUpdateCallback)));
       }
 
       public synchronized Credential getCredentials() {

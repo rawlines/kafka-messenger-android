@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="server_list">
-        <item>192.168.0.100:8081</item>
-        <item>kafkaproject.ddns.net:9091</item>
-        <item>lmn806.ddns.net:9091</item>
+        <item>kafkaproject.ddns.net:8081</item>
+        <item>lmn806.ddns.net:8081</item>
+    </string-array>
+
+    <string-array name="password_requisites">
+        <item>Entre 6 y 20 caracteres</item>
+        <item>De A-z y digitos de 0-9</item>
+        <item>Símbolos permitidos: \"_\" \" \" \"-\"</item>
+        <item>Mínimo una mayúscula, una minúscula y un digito</item>
+    </string-array>
+
+    <string-array name="username_requisites">
+        <item>Entre 5 y 10 caracteres</item>
+        <item>De A-z y digitos de 0-9 sin espacios</item>
     </string-array>
 </resources>
