@@ -40,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
       public static KeyStore trustStore;
       public static KeyStore keyStore;
 
+      public static byte[] myPublicKey;
+
       public static Credential globalCredentials = null;
 
       public static String currentConversation = null;
@@ -186,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                         new File(getFilesDir().getAbsolutePath() + "/" + KEYSTORE_FILENAME), "123456");
                   Cryptography.setPrivKey((PrivateKey) keyStore.getKey("default", "123456".toCharArray()));
 
-                  Log.d("CERT", new String(Base64.encode(keyStore.getCertificate("default").getPublicKey().getEncoded(), Base64.DEFAULT), StandardCharsets.ISO_8859_1));
+                  myPublicKey = Base64.encode(keyStore.getCertificate("default").getPublicKey().getEncoded(), Base64.DEFAULT);
             } catch (Exception e) {
                   Log.d("CERT", e.getMessage());
                   e.printStackTrace();
@@ -248,10 +250,7 @@ public class MainActivity extends AppCompatActivity {
       private void shareCodeRoutine() {
             final String jsonTemplate = "{\"username\":\"%s\",\"publicKey\":\"%s\"}";
             try {
-                  String base64Key = Base64.encodeToString(keyStore.getCertificate(KeyStoreUtil.DEFAULT_ALIAS)
-                        .getPublicKey().getEncoded(), Base64.DEFAULT);
-
-                  String formatted = String.format(jsonTemplate, globalCredentials.username, base64Key);
+                  String formatted = String.format(jsonTemplate, globalCredentials.username, new String(myPublicKey, StandardCharsets.ISO_8859_1));
 
                   Intent intent = new Intent(this, ShareMyCodeActivity.class);
                   intent.putExtra("sharecode", formatted);

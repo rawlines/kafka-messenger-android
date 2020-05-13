@@ -77,15 +77,17 @@ public class ChatActivity extends AppCompatActivity {
 
       private static class MessageSenderRunnable implements Runnable {
             private ConversationMessage msg;
+            private ConversationMessage localCopy;
 
-            MessageSenderRunnable(ConversationMessage msg) {
+            MessageSenderRunnable(ConversationMessage msg, ConversationMessage localCopy) {
                   this.msg = msg;
+                  this.localCopy = localCopy;
             }
 
             @Override
             public void run() {
                   try {
-                        MainActivity.databaseManager.insertConversationMessage(msg);
+                        MainActivity.databaseManager.insertConversationMessage(localCopy);
                         PublicWriter.producedWithoutAck.add(msg);
                         MainActivity.publicWriter.sendPROD(msg.conversation, msg.content);
                   } catch (Exception ignored) {}
@@ -185,11 +187,16 @@ public class ChatActivity extends AppCompatActivity {
                   ConversationMessage msg = new ConversationMessage(Cryptography.metadataToCryptedBytes(md, currentContact.publicKey));
                   msg.timestamp = md.timestamp;
                   msg.conversation = md.source;
-
                   msg.messageType = SENT;
                   msg.conversation = conversation;
 
-                  new Thread(new MessageSenderRunnable(msg)).start();
+                  ConversationMessage copy = new ConversationMessage(Cryptography.metadataToCryptedBytes(md, MainActivity.myPublicKey));
+                  copy.timestamp = md.timestamp;
+                  copy.conversation = md.source;
+                  copy.messageType = SENT;
+                  copy.conversation = conversation;
+
+                  new Thread(new MessageSenderRunnable(msg, copy)).start();
 
                   tv.setText("");
             } catch (Exception e) {
