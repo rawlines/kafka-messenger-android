@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.R;
@@ -23,7 +24,7 @@ import com.google.gson.Gson;
 import java.nio.charset.StandardCharsets;
 
 public class NewContactActivity extends AppCompatActivity {
-      private class ContactDataObject {
+      private static class ContactDataObject {
             String username;
             String publicKey;
       }
@@ -37,22 +38,48 @@ public class NewContactActivity extends AppCompatActivity {
             }
             @Override
             public void run() {
-                  MainActivity.databaseManager.insertContact(contact);
-                  //TODO: send command to server
+                  boolean contactExists = MainActivity.databaseManager.getContact(contact.username) != null;
+
                   Message msg = new Message();
-                  msg.arg1 = 0;
-                  handler.sendMessage(msg);
+                  if (contactExists) {
+                        Bundle b = new Bundle();
+                        b.putSerializable("contact", contact);
+                        msg.setData(b);
+                        msg.arg1 = 1;
+                        handler.sendMessage(msg);
+                  } else {
+                        MainActivity.databaseManager.insertContact(contact);
+                        msg.arg1 = 0;
+                        handler.sendMessage(msg);
+                  }
             }
       }
 
       private Handler onSavedHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(@NonNull Message msg) {
+                  //0 = OK, 1 = CANCELLED
                   if (msg.arg1 == 0) {
                         Toast.makeText(NewContactActivity.this, R.string.toast_okey_key, Toast.LENGTH_LONG).show();
                         finish();
-                  } else {
-                        //OH no
+                  } else if (msg.arg1 == 1) {
+                        Contact contact = (Contact) msg.getData().getSerializable("contact");
+                        if (contact == null)
+                              return;
+
+                        new AlertDialog.Builder(NewContactActivity.this)
+                              .setTitle(R.string.contact_exists)
+                              .setPositiveButton(R.string.modify_it, (dialog, which) -> {
+
+                                    new Thread(() -> MainActivity.databaseManager.updateContact(contact)).start();
+
+                                    Toast.makeText(NewContactActivity.this, R.string.toast_okey_key, Toast.LENGTH_LONG).show();
+                                    finish();
+                              })
+                              .setNegativeButton(R.string.cancel_it, (dialog, which) ->
+                                    Toast.makeText(NewContactActivity.this, R.string.toast_nookey_key, Toast.LENGTH_LONG).show()
+                              )
+                              .show();
                   }
             }
       };

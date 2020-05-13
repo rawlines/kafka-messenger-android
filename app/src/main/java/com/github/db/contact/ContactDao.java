@@ -11,6 +11,12 @@ public interface ContactDao {
     @Query("SELECT * FROM Contact WHERE username LIKE :username")
     Contact getContact(String username);
 
+    @Query("UPDATE Contact SET publicKey = :publicKey WHERE username LIKE :username")
+    void updatePublicKey(String username, byte[] publicKey);
+
+    @Query("UPDATE Contact SET alias = :alias WHERE username LIKE :username")
+    void updateAlias(String username, String alias);
+
     @Query("SELECT * FROM Contact WHERE (SELECT count(*) FROM ConversationMessage WHERE conversation LIKE username) > 0")
     List<Contact> getActive();
 

@@ -10,7 +10,11 @@
     <string name="mate_key_button">Escanear QR</string>
     <string name="toast_wrong_key">No se ha podido añadir este usuario, comprueba los datos y vuelve a intentarlo</string>
     <string name="toast_okey_key">Usuario añadido correctamente</string>
+    <string name="toast_nookey_key">Operación cancelada</string>
     <string name="toolbar_new_contact_title">Nuevo contacto</string>
+    <string name="contact_exists">Este usuario ya existe</string>
+    <string name="modify_it">Modificarlo</string>
+    <string name="cancel_it">Cancelar</string>
 
     <string name="username_hint">Nombre de usuario</string>
     <string name="password_hint">Contraseña</string>

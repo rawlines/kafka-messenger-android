@@ -253,6 +253,11 @@ public final class DatabaseManager {
             this.contactDao.setUnread(username, value);
       }
 
+      public synchronized void updateContact(Contact contact) {
+            this.contactDao.updatePublicKey(contact.username, contact.publicKey);
+            this.contactDao.updateAlias(contact.username, contact.alias);
+      }
+
       public synchronized void setCredentialUpdateCallback(Callback<Credential> callback) {
             this.credentialUpdateCallback = callback;
       }
