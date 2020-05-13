@@ -5,15 +5,18 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.github.R;
+import com.github.crypto.Cryptography;
 import com.github.db.AppDatabase;
 import com.github.db.credentials.Credential;
 import com.github.ui.adapters.MainTabsPagerAdapter;
 import com.github.db.DatabaseManager;
+import com.github.utils.KeyStoreUtil;
 import com.github.utils.PublicWriter;
 import com.github.utils.threads.MainListenerThread;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -27,7 +30,10 @@ import androidx.room.Room;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.security.PrivateKey;
 
 public class MainActivity extends AppCompatActivity {
       public static KeyStore trustStore;
@@ -39,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
 
       public static PublicWriter publicWriter;
       public static DatabaseManager databaseManager;
+
+      private final String KEYSTORE_FILENAME = "client.bks";
 
       private Thread mainListenerThread;
 
@@ -171,8 +179,13 @@ public class MainActivity extends AppCompatActivity {
                   trustStore = KeyStore.getInstance("BKS");
                   trustStore.load(getResources().openRawResource(R.raw.kafkarootca), "123456".toCharArray());
 
-                  keyStore = KeyStore.getInstance("BKS");
-                  keyStore.load(getResources().openRawResource(R.raw.client), "123456".toCharArray());
+                  Log.d("CERT", getFilesDir().getAbsolutePath() + "/" + KEYSTORE_FILENAME);
+                  //Generate or init keystore
+                  keyStore = KeyStoreUtil.getKeyStore(
+                        new File(getFilesDir().getAbsolutePath() + "/" + KEYSTORE_FILENAME), "123456");
+                  Cryptography.setPrivKey((PrivateKey) keyStore.getKey("default", "123456".toCharArray()));
+
+                  Log.d("CERT", new String(Base64.encode(keyStore.getCertificate("default").getPublicKey().getEncoded(), Base64.DEFAULT), StandardCharsets.ISO_8859_1));
             } catch (Exception e) {
                   Log.d("CERT", e.getMessage());
                   e.printStackTrace();

@@ -18,7 +18,7 @@ import com.github.activities.MainActivity;
 import com.github.R;
 import com.github.db.contact.Contact;
 import com.github.db.conversation.ConversationMessage;
-import com.github.utils.Cryptography;
+import com.github.crypto.Cryptography;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -111,11 +111,15 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
         while (iter.hasNext() && !found) {
             ChatData currentData = iter.next();
             if (msg.conversation.equals(currentData.contact.username)) {
-                currentData.lastMessage = Cryptography.decryptBytes(msg.content).plain;
+                try {
+                    currentData.lastMessage = Cryptography.decryptBytes(msg.content).plain;
 
-                //set unread,
-                currentData.contact.unread = true; //immediate variable
-                found = true;
+                    //set unread,
+                    currentData.contact.unread = true; //immediate variable
+                    found = true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else {
                 indx++;
             }
@@ -137,16 +141,20 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
 
             //new conversation entry is created
             new Thread(() -> {
-                Contact contact = MainActivity.databaseManager.getContact(msg.conversation);
-                String plain = Cryptography.decryptBytes(msg.content).plain;
+                try {
+                    Contact contact = MainActivity.databaseManager.getContact(msg.conversation);
+                    String plain = Cryptography.decryptBytes(msg.content).plain;
 
-                ChatData chatData = new ChatData(contact, plain);
+                    ChatData chatData = new ChatData(contact, plain);
 
-                Bundle b = new Bundle();
-                b.putSerializable("data", chatData);
-                Message m = new Message();
-                m.setData(b);
-                handler.sendMessage(m);
+                    Bundle b = new Bundle();
+                    b.putSerializable("data", chatData);
+                    Message m = new Message();
+                    m.setData(b);
+                    handler.sendMessage(m);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }).start();
         }
     }

@@ -7,9 +7,10 @@ import androidx.room.ForeignKey;
 import androidx.room.Ignore;
 
 import com.github.db.contact.Contact;
-import com.github.utils.Cryptography;
+import com.github.crypto.Cryptography;
 
 import java.io.Serializable;
+import java.security.PrivateKey;
 
 import static androidx.room.ForeignKey.CASCADE;
 
@@ -51,7 +52,7 @@ public class ConversationMessage implements Serializable {
         this.content = content;
     }
 
-    public static ConversationMessage fromCryptedBytes(byte[] bytes) {
+    public static ConversationMessage fromCryptedBytes(byte[] bytes) throws Exception {
         ConversationMessage msg = new ConversationMessage(bytes);
 
         MetaData md = Cryptography.decryptBytes(bytes);

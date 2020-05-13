@@ -14,6 +14,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.R;
+import com.github.crypto.Cryptography;
 import com.github.db.conversation.ConversationMessage;
 
 import java.nio.charset.StandardCharsets;
@@ -103,7 +104,12 @@ public class ConversationRecyclerViewAdapter extends RecyclerView.Adapter<Conver
         }
 
         //here will have to decrypt
-        messageText.setText(new String(currentMsg.content, StandardCharsets.ISO_8859_1));
+        try {
+            ConversationMessage.MetaData md = Cryptography.decryptBytes(currentMsg.content);
+            messageText.setText(md.plain);
+        } catch (Exception e) {
+            messageText.setText("<< ¡¡¡ ERROR DECRYPTING !!! >>>");
+        }
     }
 
     @Override

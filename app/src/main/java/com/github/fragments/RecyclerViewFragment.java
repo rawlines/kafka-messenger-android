@@ -24,7 +24,7 @@ import com.github.db.conversation.ConversationMessage;
 import com.github.ui.adapters.ChatFragmentRecyclerAdapter;
 import com.github.ui.adapters.ChatFragmentRecyclerAdapter.ChatData;
 import com.github.ui.adapters.ContactsFragmentRecyclerAdapter;
-import com.github.utils.Cryptography;
+import com.github.crypto.Cryptography;
 
 import java.util.ArrayList;
 
@@ -65,8 +65,12 @@ public class RecyclerViewFragment extends Fragment {
                 ConversationMessage currentMsg =
                       MainActivity.databaseManager.getLastConversationMessage(c.username);
 
-                String plain = Cryptography.decryptBytes(currentMsg.content).plain;
-                info.add(new ChatData(c, plain));
+                try {
+                    String plain = Cryptography.decryptBytes(currentMsg.content).plain;
+                    info.add(new ChatData(c, plain));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             Bundle b = new Bundle();

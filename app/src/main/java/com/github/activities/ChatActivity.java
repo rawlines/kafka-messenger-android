@@ -21,10 +21,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.R;
+import com.github.db.contact.Contact;
 import com.github.ui.adapters.ConversationRecyclerViewAdapter;
 import com.github.db.conversation.ConversationMessage;
 import com.github.db.conversation.ConversationMessage.MetaData;
-import com.github.utils.Cryptography;
+import com.github.crypto.Cryptography;
 import com.github.utils.PublicWriter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -34,6 +35,7 @@ import java.util.List;
 import static com.github.db.conversation.ConversationMessage.SENT;
 
 public class ChatActivity extends AppCompatActivity {
+      private Contact currentContact;
       private String conversation;
 
       private boolean selectionMode = false;
@@ -56,7 +58,11 @@ public class ChatActivity extends AppCompatActivity {
             }
       };
 
-      private final Runnable backgroundDBMessageFetcher = () -> {
+      private final Runnable backgroundDBFetcher = () -> {
+            //Fetch current Contact
+            currentContact = MainActivity.databaseManager.getContact(conversation);
+
+            //Fetch messages
             List<ConversationMessage> messages =
                   MainActivity.databaseManager.getConversationMessages(conversation);
 
@@ -98,7 +104,7 @@ public class ChatActivity extends AppCompatActivity {
                   ab.setTitle(getIntent().getStringExtra("alias"));
 
             initChatGUI();
-            new Thread(backgroundDBMessageFetcher).start();
+            new Thread(backgroundDBFetcher).start();
       }
 
       @Override
@@ -173,13 +179,22 @@ public class ChatActivity extends AppCompatActivity {
             md.plain = s;
             md.source = MainActivity.globalCredentials.username;
 
-            ConversationMessage msg = ConversationMessage.fromCryptedBytes(Cryptography.metadataToCryptedBytes(md));
-            msg.messageType = SENT;
-            msg.conversation = conversation;
+            //get public key
 
-            new Thread(new MessageSenderRunnable(msg)).start();
+            try {
+                  ConversationMessage msg = new ConversationMessage(Cryptography.metadataToCryptedBytes(md, currentContact.publicKey));
+                  msg.timestamp = md.timestamp;
+                  msg.conversation = md.source;
 
-            tv.setText("");
+                  msg.messageType = SENT;
+                  msg.conversation = conversation;
+
+                  new Thread(new MessageSenderRunnable(msg)).start();
+
+                  tv.setText("");
+            } catch (Exception e) {
+                  e.printStackTrace();
+            }
       }
 
       public void databaseListener(ConversationMessage msg) {
