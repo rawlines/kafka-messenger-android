@@ -30,6 +30,8 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".activities.CredentialsActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".activities.ShareMyCodeActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

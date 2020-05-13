@@ -30,6 +30,9 @@ import java.util.Date;
 import java.util.Random;
 
 public abstract class KeyStoreUtil {
+      private static final String DEFAULT_USER = "kafkaUser";
+      public static final String DEFAULT_ALIAS = "default";
+
       /**
        * Gets an existing keystore from localStorage, if not exists, a new one is returned
        *
@@ -45,8 +48,8 @@ public abstract class KeyStoreUtil {
             } else {
                   keyStore.load(null, password.toCharArray());
                   KeyPair keyPair = generateKeyPair(2048);
-                  X509Certificate cert = generateCertificate(keyPair, 365, "default");
-                  keyStore.setKeyEntry("default", keyPair.getPrivate(), "123456".toCharArray(), new X509Certificate[]{cert});
+                  X509Certificate cert = generateCertificate(keyPair, 365, DEFAULT_USER);
+                  keyStore.setKeyEntry(DEFAULT_ALIAS, keyPair.getPrivate(), password.toCharArray(), new X509Certificate[]{cert});
 
                   keyStoreFile.createNewFile();
                   FileOutputStream fos = new FileOutputStream(keyStoreFile);
@@ -84,7 +87,7 @@ public abstract class KeyStoreUtil {
                   , x500Name
                   , subjectPublicKeyInfo);
 
-            ContentSigner sigGen = null;
+            ContentSigner sigGen;
             Security.addProvider(new BouncyCastleProvider());
             sigGen = new JcaContentSignerBuilder("SHA256WithRSAEncryption").setProvider("SC").build(keyPair.getPrivate());
             X509CertificateHolder x509CertificateHolder = v1CertGen.build(sigGen);

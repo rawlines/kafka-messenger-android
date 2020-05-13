@@ -26,4 +26,8 @@
 
     <string name="server_selector_title">Elige un servidor</string>
     <string name="server_selector_ok">Aceptar</string>
+
+    <string name="copy_button">Copiar</string>
+    <string name="share_mycode_title">Compartir mi código</string>
+    <string name="successfully_copied">Código guardado en el portapapeles</string>
 </resources>

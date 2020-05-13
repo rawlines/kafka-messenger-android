@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primaryColor">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/share_mycode_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/secondaryLightColor"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="@string/share_mycode_title"
+        app:titleTextColor="@color/primaryColor" />
+
+    <EditText
+        android:id="@+id/shared_code"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="120dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="200dp"
+        android:autofillHints="AUTOFILL_TYPE_NONE"
+        android:background="@drawable/message_input_background"
+        android:backgroundTint="@color/primaryLightColor"
+        android:editable="false"
+        android:ems="10"
+        android:gravity="center|start|top"
+        android:inputType="textUri|textMultiLine|textNoSuggestions"
+        android:maxHeight="170dp"
+        android:minHeight="20dp"
+        android:paddingStart="15dp"
+        android:paddingTop="9dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="11dp"
+        android:textColor="@color/primaryTextColor"
+        android:textColorHighlight="@color/secondaryDarkColor"
+        android:textColorHint="#C1C1C1"
+        android:textColorLink="@color/secondaryColor"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/copy_code_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="@color/secondaryLightColor"
+        android:text="@string/copy_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/shared_code" />
+</androidx.constraintlayout.widget.ConstraintLayout>

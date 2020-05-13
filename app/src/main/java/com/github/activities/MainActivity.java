@@ -9,6 +9,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.github.R;
 import com.github.crypto.Cryptography;
@@ -245,6 +246,19 @@ public class MainActivity extends AppCompatActivity {
        * Routine for displaying the dialog with
        */
       private void shareCodeRoutine() {
+            final String jsonTemplate = "{\"username\":\"%s\",\"publicKey\":\"%s\"}";
+            try {
+                  String base64Key = Base64.encodeToString(keyStore.getCertificate(KeyStoreUtil.DEFAULT_ALIAS)
+                        .getPublicKey().getEncoded(), Base64.DEFAULT);
 
+                  String formatted = String.format(jsonTemplate, globalCredentials.username, base64Key);
+
+                  Intent intent = new Intent(this, ShareMyCodeActivity.class);
+                  intent.putExtra("sharecode", formatted);
+                  startActivity(intent);
+            } catch (Exception e) {
+                  e.printStackTrace();
+                  Toast.makeText(this, "Ha ocurido un error al compartir el código", Toast.LENGTH_SHORT).show();
+            }
       }
 }
