@@ -5,12 +5,15 @@ import android.util.Base64;
 import com.github.db.conversation.ConversationMessage.MetaData;
 import com.google.gson.Gson;
 
+import org.spongycastle.jce.provider.BouncyCastleProvider;
+
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Random;
 import java.util.regex.Pattern;
@@ -22,10 +25,14 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public abstract class Cryptography {
-      private static final String RSA_ALGORITHM = "RSA/ECB/PKCS1Padding";
-      private static final String AES_ALGORITHM = "AES/CBC/PKCS5Padding";
+      private static final String RSA_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
+      private static final String AES_ALGORITHM = "AES/CBC/PKCS7Padding";
 
       private static PrivateKey priv;
+
+      static {
+            Security.addProvider(new BouncyCastleProvider());
+      }
 
       public static void setPrivKey(PrivateKey key) { priv = key; }
 
