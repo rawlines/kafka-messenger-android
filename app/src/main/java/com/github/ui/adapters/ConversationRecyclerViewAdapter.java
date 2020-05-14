@@ -142,7 +142,7 @@ public class ConversationRecyclerViewAdapter extends RecyclerView.Adapter<Conver
         this.notifyItemRangeInserted(start, messages.size());
     }
 
-    public void removeIndexes(List<ConversationMessage> messages) {
+    public void removeMessages(List<ConversationMessage> messages) {
         messages.forEach((msg) -> {
             int i = this.messages.indexOf(msg);
             this.messages.remove(i);
