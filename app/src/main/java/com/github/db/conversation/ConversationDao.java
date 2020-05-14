@@ -26,6 +26,9 @@ public interface ConversationDao {
     @Query("DELETE FROM ConversationMessage WHERE timestamp LIKE :timestamp AND messageType LIKE :messageType")
     void removeConversationMessage(long timestamp, short messageType);
 
+    @Query("DELETE FROM ConversationMessage WHERE conversation LIKE :conversation")
+    void removeConversations(String conversation);
+
     @Query("UPDATE ConversationMessage SET success = 1 WHERE timestamp = :id")
     void setAsSuccess(long id);
 

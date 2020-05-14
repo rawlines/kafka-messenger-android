@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/remove_selected_menu_option"
-        android:icon="@drawable/ic_delete_forever_24px"
+        android:icon="@drawable/ic_delete_forever_white24px"
         android:title="remove"
         android:visible="false"
         app:showAsAction="always" />

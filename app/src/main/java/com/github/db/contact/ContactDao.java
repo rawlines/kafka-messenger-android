@@ -23,6 +23,9 @@ public interface ContactDao {
     @Query("SELECT * FROM Contact WHERE (SELECT count(*) FROM ConversationMessage WHERE conversation LIKE username) = 0")
     List<Contact> getInactive();
 
+    @Query("DELETE FROM Contact WHERE username LIKE :username")
+    void deleteContact(String username);
+
     @Query("UPDATE Contact SET unread = :value WHERE username LIKE :username")
     void setUnread(String username, boolean value);
 

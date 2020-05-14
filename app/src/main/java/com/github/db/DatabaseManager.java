@@ -233,6 +233,10 @@ public final class DatabaseManager {
             this.conversationDao.removeConversationMessage(msg.timestamp, msg.messageType);
       }
 
+      public synchronized void removeConversations(String conversation) {
+            this.conversationDao.removeConversations(conversation);
+      }
+
       public synchronized void insertContact(@NonNull Contact contact) {
             this.contactDao.insert(contact);
       }
@@ -256,6 +260,10 @@ public final class DatabaseManager {
       public synchronized void updateContact(Contact contact) {
             this.contactDao.updatePublicKey(contact.username, contact.publicKey);
             this.contactDao.updateAlias(contact.username, contact.alias);
+      }
+
+      public synchronized void deleteContact(String username) {
+            this.contactDao.deleteContact(username);
       }
 
       public synchronized void setCredentialUpdateCallback(Callback<Credential> callback) {

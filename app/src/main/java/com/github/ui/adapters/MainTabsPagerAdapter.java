@@ -1,28 +1,26 @@
 package com.github.ui.adapters;
 
-import android.content.Context;
-
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 
 import com.github.R;
+import com.github.activities.MainActivity;
 import com.github.fragments.RecyclerViewFragment;
 
 public class MainTabsPagerAdapter extends FragmentStatePagerAdapter {
     private static final int[] TAB_TITLES = {R.string.tab_chats, R.string.tab_contacts};
-    private Context context;
+    private MainActivity mainActivity;
 
-    public MainTabsPagerAdapter(Context context, FragmentManager fm) {
+    public MainTabsPagerAdapter(MainActivity mainActivity, FragmentManager fm) {
         super(fm);
-        this.context = context;
+        this.mainActivity = mainActivity;
     }
 
     @Override
     public Fragment getItem(int position) {
-        RecyclerViewFragment rvf = new RecyclerViewFragment(TAB_TITLES[position]);
-        return rvf;
+        return new RecyclerViewFragment(TAB_TITLES[position], mainActivity);
     }
 
     @Override
@@ -33,6 +31,6 @@ public class MainTabsPagerAdapter extends FragmentStatePagerAdapter {
     @Nullable
     @Override
     public CharSequence getPageTitle(int position) {
-        return context.getResources().getString(TAB_TITLES[position]);
+        return mainActivity.getResources().getString(TAB_TITLES[position]);
     }
 }

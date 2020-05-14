@@ -62,6 +62,9 @@ public class ChatActivity extends AppCompatActivity {
             //Fetch current Contact
             currentContact = MainActivity.databaseManager.getContact(conversation);
 
+            //Set current contact as unread
+            MainActivity.databaseManager.setContactUnread(currentContact.username, false);
+
             //Fetch messages
             List<ConversationMessage> messages =
                   MainActivity.databaseManager.getConversationMessages(conversation);
@@ -261,7 +264,7 @@ public class ChatActivity extends AppCompatActivity {
                   @Override
                   public void handleMessage(@NonNull Message msg) {
                         //remove messages from recycler view
-                        mAdapter.removeIndexes(selectedMessages);
+                        mAdapter.removeMessages(selectedMessages);
                         exitSelectionMode();
                         selectedMessages.clear();
                   }

@@ -24,15 +24,19 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragmentRecyclerAdapter.ViewHolder> {
     private ArrayList<ChatData> conversations = new ArrayList<>();
-    private Consumer<View> callback;
+    private ChatClickCallback onClick;
+    private ChatClickCallback onLongClick;
+
+    public interface ChatClickCallback {
+        boolean action(CardView v, ChatData d);
+    }
 
     public static class ChatData implements Serializable {
-        Contact contact;
-        String lastMessage;
+        public Contact contact;
+        public String lastMessage;
 
         public ChatData(Contact contact, String lastMessage) {
             this.contact = contact;
@@ -46,8 +50,9 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
         }
     }
 
-    public ChatFragmentRecyclerAdapter(Consumer<View> clickCallback) {
-        this.callback = clickCallback;
+    public ChatFragmentRecyclerAdapter(ChatClickCallback onClick, ChatClickCallback onLongClick) {
+        this.onClick = onClick;
+        this.onLongClick = onLongClick;
     }
 
     @NonNull
@@ -78,10 +83,8 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
         else
             notification.setVisibility(View.INVISIBLE);
 
-        card.setOnClickListener((view) -> {
-            new Thread(() -> MainActivity.databaseManager.setContactUnread(currentInfo.contact.username, false)).start();
-            this.callback.accept(view);
-        });
+        card.setOnClickListener((v) -> this.onClick.action((CardView) v, currentInfo));
+        card.setOnLongClickListener((v) -> this.onLongClick.action((CardView) v, currentInfo));
     }
 
     @Override
@@ -95,8 +98,16 @@ public class ChatFragmentRecyclerAdapter extends RecyclerView.Adapter<ChatFragme
         this.notifyDataSetChanged();
     }
 
+    public void removeConversations(List<ChatData> conversations) {
+        conversations.forEach((msg) -> {
+            int i = this.conversations.indexOf(msg);
+            this.conversations.remove(i);
+            this.notifyItemRemoved(i);
+        });
+    }
+
     /**
-     * The conversation is unmarked as unread, and the passed message is sown. if conversation does not exists,
+     * The conversation is marked as unread, and the passed message is sown. if conversation does not exists,
      * then it is created
      *
      * @param msg - Message to update the conversation with

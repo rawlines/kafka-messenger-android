@@ -8,4 +8,10 @@
     <item
         android:id="@+id/change_server_option"
         android:title="@string/option_changeserver" />
+    <item
+        android:id="@+id/delete_menu_mainactivity"
+        android:icon="@drawable/ic_delete_forever_black24px"
+        android:title="delete"
+        android:visible="false"
+        app:showAsAction="always" />
 </menu>

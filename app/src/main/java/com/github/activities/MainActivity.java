@@ -51,7 +51,9 @@ public class MainActivity extends AppCompatActivity {
 
       private final String KEYSTORE_FILENAME = "client.bks";
 
-      private Thread mainListenerThread;
+      private final Thread mainListenerThread = new MainListenerThread(this);
+
+      public MenuItem deleteMenuButton;
 
       Handler credentialsHandler = new Handler(Looper.getMainLooper()) {
             @Override
@@ -92,8 +94,8 @@ public class MainActivity extends AppCompatActivity {
        * Handle the result of the {@link CredentialsActivity}
        *
        * @param requestCode - Handle if are new credentials or modifying existing
-       * @param resultCode
-       * @param data
+       * @param resultCode -
+       * @param data -
        */
       @Override
       protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -124,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public boolean onCreateOptionsMenu(Menu menu) {
             getMenuInflater().inflate(R.menu.main_menu, menu);
+            deleteMenuButton = menu.findItem(R.id.delete_menu_mainactivity);
             return super.onCreateOptionsMenu(menu);
       }
 
@@ -207,7 +210,6 @@ public class MainActivity extends AppCompatActivity {
        * Initializes the main listener thread with SSL configurations.
        */
       private void initMainListenerThread() {
-            this.mainListenerThread = new MainListenerThread(this);
             this.mainListenerThread.start();
       }
 

@@ -15,11 +15,15 @@ import com.github.db.contact.Contact;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ContactsFragmentRecyclerAdapter extends RecyclerView.Adapter<ContactsFragmentRecyclerAdapter.ViewHolder> {
     private ArrayList<Contact> contacts = new ArrayList<>();
-    private Consumer<View> clickCallback;
+    private ContactClickCallback onClick;
+    private ContactClickCallback onLongClick;
+
+    public interface ContactClickCallback {
+        boolean action(CardView v, Contact c);
+    }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ViewHolder(View v) {
@@ -27,8 +31,9 @@ public class ContactsFragmentRecyclerAdapter extends RecyclerView.Adapter<Contac
         }
     }
 
-    public ContactsFragmentRecyclerAdapter(Consumer<View> clickCallback) {
-        this.clickCallback = clickCallback;
+    public ContactsFragmentRecyclerAdapter(ContactClickCallback onClick, ContactClickCallback onLongClick) {
+        this.onClick = onClick;
+        this.onLongClick = onLongClick;
     }
 
     @NonNull
@@ -48,7 +53,9 @@ public class ContactsFragmentRecyclerAdapter extends RecyclerView.Adapter<Contac
 
         alias.setText(currentContact.alias);
         userName.setText(currentContact.username);
-        card.setOnClickListener(this.clickCallback::accept);
+
+        card.setOnClickListener((v) -> this.onClick.action((CardView) v, currentContact));
+        card.setOnLongClickListener((v) -> this.onLongClick.action((CardView) v, currentContact));
     }
 
     @Override
@@ -60,6 +67,11 @@ public class ContactsFragmentRecyclerAdapter extends RecyclerView.Adapter<Contac
         this.contacts.clear();
         this.contacts.addAll(contacts);
         this.notifyDataSetChanged();
+    }
+
+    public void add(Contact contact) {
+        this.contacts.add(contact);
+        this.notifyItemInserted(this.contacts.size() - 1);
     }
 
     /**
@@ -80,5 +92,13 @@ public class ContactsFragmentRecyclerAdapter extends RecyclerView.Adapter<Contac
                 pos++;
             }
         }
+    }
+
+    public void removeContacts(List<Contact> contacts) {
+        contacts.forEach((msg) -> {
+            int i = this.contacts.indexOf(msg);
+            this.contacts.remove(i);
+            this.notifyItemRemoved(i);
+        });
     }
 }

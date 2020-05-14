@@ -1,10 +1,13 @@
 package com.github.fragments;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +15,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,13 +31,18 @@ import com.github.ui.adapters.ContactsFragmentRecyclerAdapter;
 import com.github.crypto.Cryptography;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import static android.content.Context.VIBRATOR_SERVICE;
 
 public class RecyclerViewFragment extends Fragment {
     private RecyclerView contactsRecyclerView;
     private RecyclerView chatsRecyclerView;
 
-    private ContactsFragmentRecyclerAdapter mContactAdapter;
-    private ChatFragmentRecyclerAdapter mChatAdapter;
+    private static ContactsFragmentRecyclerAdapter mContactAdapter;
+    private static ChatFragmentRecyclerAdapter mChatAdapter;
+
+    private MainActivity mainActivity;
 
     private int tabResource;
 
@@ -93,8 +102,9 @@ public class RecyclerViewFragment extends Fragment {
         contactPutter.sendMessage(msg);
     };
 
-    public RecyclerViewFragment(int tabResource) {
+    public RecyclerViewFragment(int tabResource, MainActivity mainActivity) {
         this.tabResource = tabResource;
+        this.mainActivity = mainActivity;
     }
 
     @Override
@@ -145,7 +155,7 @@ public class RecyclerViewFragment extends Fragment {
     }
 
     private void chatsFragment() {
-        mChatAdapter = new ChatFragmentRecyclerAdapter(this::onChatClick);
+        mChatAdapter = new ChatFragmentRecyclerAdapter(this::onChatClick, this::onChatLongClick);
         chatsRecyclerView.setAdapter(mChatAdapter);
         new Thread(chatsFetchRunnable).start();
 
@@ -160,7 +170,7 @@ public class RecyclerViewFragment extends Fragment {
     }
 
     private void contactsFragment() {
-        mContactAdapter = new ContactsFragmentRecyclerAdapter(this::onContactClick);
+        mContactAdapter = new ContactsFragmentRecyclerAdapter(this::onContactClick, this::onContactLongClick);
         contactsRecyclerView.setAdapter(mContactAdapter);
         new Thread(contactsFetchRunnable).start();
 
@@ -174,25 +184,148 @@ public class RecyclerViewFragment extends Fragment {
 
     }
 
-    private void onContactClick(View v) {
-        TextView username = v.findViewById(R.id.contact_username);
-        TextView alias = v.findViewById(R.id.contact_alias);
-        MainActivity.currentConversation = username.getText().toString();
+    private boolean contactSelection = false;
+    private List<Contact> selectedContacts = new ArrayList<>();
+    private boolean onContactClick(View v, Contact c) {
+        if (!contactSelection) {
+            TextView username = v.findViewById(R.id.contact_username);
+            TextView alias = v.findViewById(R.id.contact_alias);
+            MainActivity.currentConversation = username.getText().toString();
 
-        Intent intent = new Intent(getContext(), ChatActivity.class);
-        intent.putExtra("alias", alias.getText().toString());
+            Intent intent = new Intent(getContext(), ChatActivity.class);
+            intent.putExtra("alias", alias.getText().toString());
 
-        startActivity(intent);
+            startActivity(intent);
+        } else {
+            boolean selected = v.isSelected();
+            if (!selected) {
+                v.setSelected(true);
+                v.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.primaryDarkColor, mainActivity.getTheme())));
+                selectedContacts.add(c);
+            } else {
+                v.setSelected(false);
+                v.setBackgroundTintList(null);
+                selectedContacts.remove(c);
+
+                if (selectedContacts.isEmpty()) {
+                    contactSelection = false;
+                    mainActivity.deleteMenuButton.setVisible(false);
+                }
+            }
+        }
+
+        return true;
     }
 
-    private void onChatClick(View v) {
-        TextView username = v.findViewById(R.id.chat_username);
-        TextView alias = v.findViewById(R.id.chat_alias);
-        MainActivity.currentConversation = username.getText().toString();
+    private boolean onContactLongClick(View v, Contact c) {
+        startSelectionMode();
+        contactSelection = true;
+        return false;
+    }
 
-        Intent intent = new Intent(getContext(), ChatActivity.class);
-        intent.putExtra("alias", alias.getText().toString());
 
-        startActivity(intent);
+    //--------------------------------Chat callbacks
+    private boolean conversationSelection = false;
+    private List<ChatData> selectedConversations = new ArrayList<>();
+    private boolean onChatClick(CardView v, ChatData d) {
+        if (!conversationSelection) {
+            TextView username = v.findViewById(R.id.chat_username);
+            TextView alias = v.findViewById(R.id.chat_alias);
+            MainActivity.currentConversation = username.getText().toString();
+
+            Intent intent = new Intent(getContext(), ChatActivity.class);
+            intent.putExtra("alias", alias.getText().toString());
+
+            startActivity(intent);
+        } else {
+            boolean selected = v.isSelected();
+            if (!selected) {
+                v.setSelected(true);
+                v.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.primaryDarkColor, mainActivity.getTheme())));
+                selectedConversations.add(d);
+            } else {
+                v.setSelected(false);
+                v.setBackgroundTintList(null);
+                selectedConversations.remove(d);
+
+                if (selectedConversations.isEmpty()) {
+                    conversationSelection = false;
+                    mainActivity.deleteMenuButton.setVisible(false);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean onChatLongClick(View v, ChatData d) {
+        startSelectionMode();
+        conversationSelection = true;
+        return false;
+    }
+
+
+    //------------------------------------------------common
+    private void startSelectionMode() {
+        Vibrator vibrator = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
+        if (vibrator != null)
+            vibrator.vibrate(VibrationEffect.createOneShot(50,50));
+
+        mainActivity.deleteMenuButton.setVisible(true);
+        mainActivity.deleteMenuButton.setOnMenuItemClickListener((item) -> {
+            deleteCoroutine();
+            return true;
+        });
+    }
+
+    private Handler contactDeleted = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            mContactAdapter.removeContacts(selectedContacts);
+            selectedContacts.clear();
+            contactSelection = false;
+            mainActivity.deleteMenuButton.setVisible(false);
+        }
+    };
+
+    private Handler conversationDeleted = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            mChatAdapter.removeConversations(selectedConversations);
+            selectedConversations.forEach((data) -> {
+                mContactAdapter.add(data.contact);
+            });
+
+            selectedConversations.clear();
+            conversationSelection = false;
+            mainActivity.deleteMenuButton.setVisible(false);
+        }
+    };
+
+    private void deleteCoroutine() {
+        if (contactSelection) {
+            if (selectedContacts.isEmpty())
+                return;
+
+            new Thread(() -> {
+                selectedContacts.forEach((contact) -> {
+                    MainActivity.databaseManager.deleteContact(contact.username);
+                });
+
+                contactDeleted.sendMessage(new Message());
+            }).start();
+
+        } else if (conversationSelection) {
+            if (selectedConversations.isEmpty())
+                return;
+
+            new Thread(() -> {
+                selectedConversations.forEach((data) -> {
+                    MainActivity.databaseManager.removeConversations(data.contact.username);
+                });
+
+                conversationDeleted.sendMessage(new Message());
+            }).start();
+        }
     }
 }
