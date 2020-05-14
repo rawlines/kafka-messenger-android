@@ -81,14 +81,13 @@ public class MainActivity extends AppCompatActivity {
 
       @Override
       protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(null);
+            super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_main);
 
             initKeyStores();
             initDatabase();
             fetchCredentialsThread.start();
       }
-
 
       /**
        * Handle the result of the {@link CredentialsActivity}

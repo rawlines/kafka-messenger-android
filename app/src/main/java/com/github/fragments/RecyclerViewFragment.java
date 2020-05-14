@@ -102,6 +102,7 @@ public class RecyclerViewFragment extends Fragment {
         contactPutter.sendMessage(msg);
     };
 
+    public RecyclerViewFragment() {}
     public RecyclerViewFragment(int tabResource, MainActivity mainActivity) {
         this.tabResource = tabResource;
         this.mainActivity = mainActivity;
