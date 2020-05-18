@@ -80,7 +80,7 @@ public class MainListenerThread extends Thread {
             public void handleMessage(@NonNull Message msg) {
                   switch (msg.arg1) {
                         case AUTH_ERROR:
-                              Snackbar.make(mainActivity.getWindow().getDecorView().getRootView(),
+                              Snackbar.make(mainActivity.findViewById(R.id.main_layout),
                                     "El servidor te ha rechazado, Prueba con otras credenciales.", Snackbar.LENGTH_INDEFINITE)
                                     .setAction("ADELANTE", (v) -> {
                                           Intent intent = new Intent(mainActivity, CredentialsActivity.class);
@@ -91,7 +91,7 @@ public class MainListenerThread extends Thread {
                                     .show();
                               break;
                         case CONNECTION_ERROR:
-                              disconnectSnackbar = Snackbar.make(mainActivity.getWindow().getDecorView().getRootView(),
+                              disconnectSnackbar = Snackbar.make(mainActivity.findViewById(R.id.main_layout),
                                     "Te has desconectado, reintentando en 5 secs.", Snackbar.LENGTH_INDEFINITE)
                                     .setAction("CAMBIAR SERVIDOR", (v) -> mainActivity.changeServerRoutine())
                                     .setActionTextColor(mainActivity.getColor(R.color.secondaryLightColor));
